@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Sistema de Gestión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Usa los mismos estilos del login, puedes copiarlos */
+        /* ... mismos estilos que login.html ... */
+        
+        .password-requirements {
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 3px;
+        }
+        
+        .requirement i {
+            font-size: 0.8rem;
+        }
+        
+        .valid {
+            color: #27ae60;
+        }
+        
+        .invalid {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>
+                <i class="fas fa-user-plus"></i>
+                Crear Cuenta
+            </h1>
+            <p>Registre una nueva cuenta en el sistema</p>
+        </div>
+        
+        <div class="login-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas 
+                            {% if message.tags == 'success' %}fa-check-circle{% endif %}
+                            {% if message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle{% endif %}
+                            {% if message.tags == 'warning' %}fa-exclamation-triangle{% endif %}
+                            {% if message.tags == 'info' %}fa-info-circle{% endif %}
+                        "></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i>
+                        Nombre de usuario
+                    </label>
+                    <input type="text" 
+                           name="username" 
+                           class="form-control" 
+                           placeholder="Ingrese un nombre de usuario"
+                           required
+                           autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Contraseña
+                    </label>
+                    <div class="password-container">
+                        <input type="password" 
+                               name="password1" 
+                               id="password1"
+                               class="form-control" 
+                               placeholder="Ingrese su contraseña"
+                               required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password1')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-requirements">
+                        <p style="margin-bottom: 8px;"><strong>La contraseña debe contener:</strong></p>
+                        <div class="requirement" id="req-length">
+                            <i class="fas fa-circle"></i>
+                            <span>Al menos 8 caracteres</span>
+                        </div>
+                        <div class="requirement" id="req-letter">
+                            <i class="fas fa-circle"></i>
+                            <span>Al menos una letra</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <i class="fas fa-circle"></i>
+                            <span>Al menos un número</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Confirmar contraseña
+                    </label>
+                    <div class="password-container">
+                        <input type="password" 
+                               name="password2" 
+                               id="password2"
+                               class="form-control" 
+                               placeholder="Repita su contraseña"
+                               required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password2')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="password-match" style="margin-top: 5px; font-size: 0.85rem;">
+                        <!-- Mensaje de coincidencia -->
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">
+                    <i class="fas fa-user-plus"></i>
+                    Registrarse
+                </button>
+                
+                <div class="login-footer">
+                    <p>
+                        ¿Ya tienes cuenta? 
+                        <a href="{% url 'login' %}">Inicia sesión aquí</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleButton = passwordInput.nextElementSibling.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.className = 'fas fa-eye';
+            }
+        }
+        
+        // Validación de contraseña en tiempo real
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const matchDiv = document.getElementById('password-match');
+        
+        function validatePassword() {
+            const password = password1.value;
+            
+            // Validar requisitos
+            const hasLength = password.length >= 8;
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            
+            // Actualizar indicadores
+            updateRequirement('req-length', hasLength);
+            updateRequirement('req-letter', hasLetter);
+            updateRequirement('req-number', hasNumber);
+            
+            // Validar coincidencia
+            if (password2.value) {
+                if (password1.value === password2.value) {
+                    matchDiv.innerHTML = '<i class="fas fa-check valid"></i> Las contraseñas coinciden';
+                    matchDiv.style.color = '#27ae60';
+                } else {
+                    matchDiv.innerHTML = '<i class="fas fa-times invalid"></i> Las contraseñas no coinciden';
+                    matchDiv.style.color = '#e74c3c';
+                }
+            }
+        }
+        
+        function updateRequirement(elementId, isValid) {
+            const element = document.getElementById(elementId);
+            const icon = element.querySelector('i');
+            if (isValid) {
+                icon.className = 'fas fa-check-circle valid';
+            } else {
+                icon.className = 'fas fa-times-circle invalid';
+            }
+        }
+        
+        // Event listeners
+        password1.addEventListener('input', validatePassword);
+        password2.addEventListener('input', validatePassword);
+    </script>
+</body>
+</html>

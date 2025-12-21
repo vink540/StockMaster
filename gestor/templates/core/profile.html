@@ -1,0 +1,442 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Gestor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .profile-info .username {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .profile-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .badge.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .profile-card h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-card h2::before {
+            content: '';
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .stat-value.highlight {
+            color: #667eea;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .activity-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-info h1 {
+                font-size: 1.8em;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'home' %}" class="back-btn">← Volver al Inicio</a>
+
+        <!-- Encabezado del Perfil -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="profile-info">
+                <h1>{{ user.get_full_name|default:user.username }}</h1>
+                <div class="username">@{{ user.username }}</div>
+                <div class="profile-badges">
+                    <span class="badge active">✓ Usuario Activo</span>
+                    <span class="badge">🏆 Miembro desde {{ user.date_joined|date:"Y" }}</span>
+                    {% if user.is_staff %}
+                    <span class="badge active">👑 Administrador</span>
+                    {% endif %}
+                </div>
+                <div class="button-group">
+                    <a href="{% url 'settings' %}" class="btn btn-primary">⚙️ Editar Perfil</a>
+                    <a href="{% url 'logout' %}" class="btn btn-outline">🚪 Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid de Información -->
+        <div class="profile-grid">
+            <!-- Estadísticas Personales -->
+            <div class="profile-card">
+                <h2>📊 Mis Estadísticas</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Productos Registrados</span>
+                    <span class="stat-value highlight">{{ total_products|default:"0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ventas Realizadas</span>
+                    <span class="stat-value highlight">{{ total_sales|default:"0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ventas del Mes</span>
+                    <span class="stat-value highlight">{{ monthly_sales|default:"0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Productos por Vencer</span>
+                    <span class="stat-value" style="color: #dc3545;">{{ expiring_products|default:"0" }}</span>
+                </div>
+            </div>
+
+            <!-- Información de la Cuenta -->
+            <div class="profile-card">
+                <h2>👤 Información de Cuenta</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Email</span>
+                    <span class="stat-value" style="font-size: 0.9em;">{{ user.email|default:"No configurado" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Miembro desde</span>
+                    <span class="stat-value" style="font-size: 0.9em;">{{ user.date_joined|date:"d/m/Y" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Último acceso</span>
+                    <span class="stat-value" style="font-size: 0.9em;">{{ user.last_login|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Estado</span>
+                    <span class="stat-value" style="color: #28a745; font-size: 0.9em;">● Activo</span>
+                </div>
+            </div>
+
+            <!-- Actividad Reciente -->
+            <div class="profile-card full-width-card">
+                <h2>📅 Actividad Reciente</h2>
+                <div class="activity-item">
+                    <div class="activity-icon">📦</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Productos añadidos al inventario</div>
+                        <div class="activity-time">Hace 2 horas</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">💰</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Venta registrada exitosamente</div>
+                        <div class="activity-time">Hace 5 horas</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">⚠️</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Alerta de productos por vencer</div>
+                        <div class="activity-time">Ayer</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">📊</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Reporte mensual generado</div>
+                        <div class="activity-time">Hace 2 días</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accesos Rápidos -->
+            <div class="profile-card">
+                <h2>⚡ Accesos Rápidos</h2>
+                <div style="display: grid; gap: 10px;">
+                    <a href="{% url 'product_list' %}" class="btn btn-outline" style="width: 100%; text-align: center;">
+                        📦 Ver Productos
+                    </a>
+                    <a href="{% url 'sales_list' %}" class="btn btn-outline" style="width: 100%; text-align: center;">
+                        💰 Ver Ventas
+                    </a>
+                    <a href="{% url 'monthly_report' %}" class="btn btn-outline" style="width: 100%; text-align: center;">
+                        📊 Reportes
+                    </a>
+                    <a href="{% url 'alerts' %}" class="btn btn-outline" style="width: 100%; text-align: center;">
+                        ⚠️ Alertas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Resumen del Sistema -->
+            <div class="profile-card">
+                <h2>🖥️ Resumen del Sistema</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Total en Inventario</span>
+                    <span class="stat-value highlight">{{ total_inventory_value|default:"$0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ventas del Mes</span>
+                    <span class="stat-value highlight">{{ monthly_revenue|default:"$0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Productos Activos</span>
+                    <span class="stat-value">{{ active_products|default:"0" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Stock Bajo</span>
+                    <span class="stat-value" style="color: #ffc107;">{{ low_stock|default:"0" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

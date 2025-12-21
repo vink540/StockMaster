@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas del Sistema - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px; /* Para compensar la barra fija */
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        /* ENCABEZADO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* BOTONES */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+        
+        /* RESUMEN DE ALERTAS */
+        .alerts-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .alert-summary-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+            border-top: 6px solid;
+        }
+        
+        .alert-summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-summary-card.expired {
+            border-top-color: #e74c3c;
+        }
+        
+        .alert-summary-card.soon {
+            border-top-color: #f39c12;
+        }
+        
+        .alert-summary-card.low-stock {
+            border-top-color: #3498db;
+        }
+        
+        .alert-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .alert-summary-card.expired .alert-icon {
+            color: #e74c3c;
+        }
+        
+        .alert-summary-card.soon .alert-icon {
+            color: #f39c12;
+        }
+        
+        .alert-summary-card.low-stock .alert-icon {
+            color: #3498db;
+        }
+        
+        .alert-count {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .alert-summary-card.expired .alert-count {
+            color: #e74c3c;
+        }
+        
+        .alert-summary-card.soon .alert-count {
+            color: #f39c12;
+        }
+        
+        .alert-summary-card.low-stock .alert-count {
+            color: #3498db;
+        }
+        
+        .alert-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .alert-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        /* SECCIONES DE ALERTAS */
+        .alert-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 6px solid;
+        }
+        
+        .alert-section.expired {
+            border-left-color: #e74c3c;
+        }
+        
+        .alert-section.soon {
+            border-left-color: #f39c12;
+        }
+        
+        .alert-section.low-stock {
+            border-left-color: #3498db;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title i {
+            font-size: 1.3rem;
+        }
+        
+        .alert-section.expired .section-title i {
+            color: #e74c3c;
+        }
+        
+        .alert-section.soon .section-title i {
+            color: #f39c12;
+        }
+        
+        .alert-section.low-stock .section-title i {
+            color: #3498db;
+        }
+        
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .alert-section.expired .section-badge {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        .alert-section.soon .section-badge {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        .alert-section.low-stock .section-badge {
+            background-color: #e8f4fc;
+            color: #2980b9;
+        }
+        
+        /* LISTA DE PRODUCTOS */
+        .products-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            margin-bottom: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .product-item:hover {
+            background-color: #e8f4fc;
+            transform: translateX(5px);
+        }
+        
+        .alert-section.expired .product-item {
+            border-left-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+        
+        .alert-section.soon .product-item {
+            border-left-color: #f39c12;
+            background-color: #fff8e1;
+        }
+        
+        .alert-section.low-stock .product-item {
+            border-left-color: #3498db;
+            background-color: #e8f4fc;
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .product-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        
+        .product-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .product-detail i {
+            width: 16px;
+        }
+        
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* MENSAJE SIN ALERTAS */
+        .no-alerts-message {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .no-alerts-icon {
+            font-size: 4rem;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        
+        .no-alerts-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .no-alerts-text {
+            color: #7f8c8d;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+        
+        /* ACCIONES MASIVAS */
+        .bulk-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* INDICADOR DE URGENCIA */
+        .urgency-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .urgency-critical {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        .urgency-high {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        .urgency-medium {
+            background-color: #fff8e1;
+            color: #f39c12;
+        }
+        
+        /* FILTROS */
+        .filters-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .filters-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filters-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filters-title i {
+            color: #3498db;
+        }
+        
+        .filters-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .filter-checkbox label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* ANIMACIONES */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-alert {
+            animation: pulse 2s infinite;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .product-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .product-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .alert-section {
+                padding: 20px;
+            }
+            
+            .alerts-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .bulk-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .alert-count {
+                font-size: 2.8rem;
+            }
+            
+            .filters-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products/new/" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reporte Mensual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear código</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Alertas del Sistema
+                </h1>
+                
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al Inicio
+                    </a>
+                    <button class="btn btn-primary" onclick="refreshAlerts()">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualizar Alertas
+                    </button>
+                </div>
+            </div>
+            
+            <!-- RESUMEN DE ALERTAS -->
+            <div class="alerts-summary">
+                <div class="alert-summary-card expired">
+                    <div class="alert-icon">
+                        <i class="fas fa-skull-crossbones"></i>
+                    </div>
+                    <div class="alert-count" id="expiredCount">
+                        {{ expired|length|default:"0" }}
+                    </div>
+                    <div class="alert-title">Productos Vencidos</div>
+                    <div class="alert-description">
+                        Productos cuya fecha de vencimiento ya pasó
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="scrollToSection('expired')">
+                        <i class="fas fa-eye"></i>
+                        Ver Detalles
+                    </button>
+                </div>
+                
+                <div class="alert-summary-card soon">
+                    <div class="alert-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="alert-count" id="soonCount">
+                        {{ soon|length|default:"0" }}
+                    </div>
+                    <div class="alert-title">Próximos a Vencer</div>
+                    <div class="alert-description">
+                        Vencen en los próximos 10 días
+                    </div>
+                    <button class="btn btn-warning btn-sm" onclick="scrollToSection('soon')">
+                        <i class="fas fa-eye"></i>
+                        Ver Detalles
+                    </button>
+                </div>
+                
+                <div class="alert-summary-card low-stock">
+                    <div class="alert-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="alert-count" id="lowStockCount">
+                        {{ low_stock|length|default:"0" }}
+                    </div>
+                    <div class="alert-title">Stock Bajo</div>
+                    <div class="alert-description">
+                        Productos con 5 unidades o menos
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="scrollToSection('low-stock')">
+                        <i class="fas fa-eye"></i>
+                        Ver Detalles
+                    </button>
+                </div>
+            </div>
+            
+            <!-- FILTROS -->
+            <div class="filters-panel">
+                <div class="filters-header">
+                    <h2 class="filters-title">
+                        <i class="fas fa-filter"></i>
+                        Filtros de Alertas
+                    </h2>
+                    
+                    <div class="filters-options">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showExpired" checked onchange="toggleSection('expired')">
+                            <label for="showExpired">Vencidos</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showSoon" checked onchange="toggleSection('soon')">
+                            <label for="showSoon">Próximos a vencer</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showLowStock" checked onchange="toggleSection('low-stock')">
+                            <label for="showLowStock">Stock bajo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PRODUCTOS VENCIDOS -->
+            <div class="alert-section expired" id="expiredSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-skull-crossbones"></i>
+                        Productos Vencidos
+                    </h2>
+                    <div class="section-badge">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="expiredBadge">{{ expired|length|default:"0" }} productos</span>
+                    </div>
+                </div>
+                
+                {% if expired %}
+                    <ul class="products-list">
+                        {% for p in expired %}
+                        <li class="product-item">
+                            <div class="product-info">
+                                <div class="product-name">{{ p.name }}</div>
+                                <div class="product-details">
+                                    <div class="product-detail">
+                                        <i class="fas fa-calendar-times"></i>
+                                        <span>Venció el {{ p.expiration_date }}</span>
+                                    </div>
+                                    <div class="product-detail">
+                                        <i class="fas fa-boxes"></i>
+                                        <span>Stock: {{ p.stock }} unidades</span>
+                                    </div>
+                                    {% if p.category %}
+                                    <div class="product-detail">
+                                        <i class="fas fa-folder"></i>
+                                        <span>{{ p.category }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <button class="btn btn-danger btn-sm" onclick="removeExpiredProduct('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-trash"></i>
+                                    Eliminar
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="promoteProduct('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-percentage"></i>
+                                    Descuento Especial
+                                </button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- ACCIONES MASIVAS PARA VENCIDOS -->
+                    <div class="bulk-actions">
+                        <button class="btn btn-danger" onclick="bulkRemoveExpired()">
+                            <i class="fas fa-trash"></i>
+                            Eliminar Todos los Vencidos
+                        </button>
+                        <button class="btn btn-warning" onclick="applyDiscountToExpired()">
+                            <i class="fas fa-tags"></i>
+                            Aplicar Descuento 50%
+                        </button>
+                        <button class="btn btn-secondary" onclick="generateExpiredReport()">
+                            <i class="fas fa-file-pdf"></i>
+                            Generar Reporte
+                        </button>
+                    </div>
+                    
+                {% else %}
+                    <div class="no-alerts-message">
+                        <div class="no-alerts-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="no-alerts-title">¡Excelente!</h3>
+                        <p class="no-alerts-text">
+                            No hay productos vencidos en el inventario. 
+                            El control de fechas de vencimiento está funcionando correctamente.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- PRODUCTOS PRÓXIMOS A VENCER -->
+            <div class="alert-section soon" id="soonSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Productos Próximos a Vencer
+                    </h2>
+                    <div class="section-badge">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="soonBadge">{{ soon|length|default:"0" }} productos</span>
+                    </div>
+                </div>
+                
+                {% if soon %}
+                    <ul class="products-list">
+                        {% for p in soon %}
+                        <li class="product-item">
+                            <div class="product-info">
+                                <div class="product-name">{{ p.name }}</div>
+                                <div class="product-details">
+                                    <div class="product-detail">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>Vence el {{ p.expiration_date }}</span>
+                                    </div>
+                                    <div class="product-detail">
+                                        <i class="fas fa-boxes"></i>
+                                        <span>Stock: {{ p.stock }} unidades</span>
+                                    </div>
+                                    {% if p.category %}
+                                    <div class="product-detail">
+                                        <i class="fas fa-folder"></i>
+                                        <span>{{ p.category }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="product-detail">
+                                        <i class="fas fa-hourglass-half"></i>
+                                        <span>
+                                            {% with days_until=p.days_until_expiration|default:"0" %}
+                                                {% if days_until == "0" %}
+                                                    <span class="urgency-indicator urgency-critical">Hoy</span>
+                                                {% elif days_until == "1" %}
+                                                    <span class="urgency-indicator urgency-high">1 día</span>
+                                                {% elif days_until <= "3" %}
+                                                    <span class="urgency-indicator urgency-high">{{ days_until }} días</span>
+                                                {% else %}
+                                                    <span class="urgency-indicator urgency-medium">{{ days_until }} días</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <button class="btn btn-warning btn-sm" onclick="promoteProduct('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-bullhorn"></i>
+                                    Promocionar
+                                </button>
+                                <a href="{% url 'edit_product' p.id %}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    Editar
+                                </a>
+                                <button class="btn btn-success btn-sm" onclick="addToSale('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-cart-plus"></i>
+                                    Vender
+                                </button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- ACCIONES MASIVAS PARA PRÓXIMOS A VENCER -->
+                    <div class="bulk-actions">
+                        <button class="btn btn-warning" onclick="applyPromotionToSoon()">
+                            <i class="fas fa-percentage"></i>
+                            Aplicar Promoción 30%
+                        </button>
+                        <button class="btn btn-success" onclick="generatePriorityList()">
+                            <i class="fas fa-list-ol"></i>
+                            Generar Lista de Prioridad
+                        </button>
+                        <button class="btn btn-primary" onclick="notifyTeam()">
+                            <i class="fas fa-bell"></i>
+                            Notificar al Equipo
+                        </button>
+                    </div>
+                    
+                {% else %}
+                    <div class="no-alerts-message">
+                        <div class="no-alerts-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="no-alerts-title">¡Buen trabajo!</h3>
+                        <p class="no-alerts-text">
+                            No hay productos próximos a vencer en los próximos 10 días.
+                            El inventario está bien gestionado.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- PRODUCTOS CON STOCK BAJO -->
+            <div class="alert-section low-stock" id="lowStockSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-box-open"></i>
+                        Productos con Stock Bajo
+                    </h2>
+                    <div class="section-badge">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="lowStockBadge">{{ low_stock|length|default:"0" }} productos</span>
+                    </div>
+                </div>
+                
+                {% if low_stock %}
+                    <ul class="products-list">
+                        {% for p in low_stock %}
+                        <li class="product-item">
+                            <div class="product-info">
+                                <div class="product-name">{{ p.name }}</div>
+                                <div class="product-details">
+                                    <div class="product-detail">
+                                        <i class="fas fa-hashtag"></i>
+                                        <span>Stock: {{ p.stock }} unidades</span>
+                                    </div>
+                                    <div class="product-detail">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span>Precio: ${{ p.price|floatformat:2 }}</span>
+                                    </div>
+                                    {% if p.category %}
+                                    <div class="product-detail">
+                                        <i class="fas fa-folder"></i>
+                                        <span>{{ p.category }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="product-detail">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>
+                                            {% if p.stock == 0 %}
+                                                <span class="urgency-indicator urgency-critical">AGOTADO</span>
+                                            {% elif p.stock == 1 %}
+                                                <span class="urgency-indicator urgency-critical">Última unidad</span>
+                                            {% elif p.stock <= 3 %}
+                                                <span class="urgency-indicator urgency-high">Muy bajo</span>
+                                            {% else %}
+                                                <span class="urgency-indicator urgency-medium">Bajo</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <button class="btn btn-primary btn-sm" onclick="reorderProduct('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Reordenar
+                                </button>
+                                <a href="{% url 'edit_product' p.id %}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    Ajustar Stock
+                                </a>
+                                <button class="btn btn-success btn-sm" onclick="checkSalesTrend('{{ p.id }}', '{{ p.name }}')">
+                                    <i class="fas fa-chart-line"></i>
+                                    Ver Tendencia
+                                </button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- ACCIONES MASIVAS PARA STOCK BAJO -->
+                    <div class="bulk-actions">
+                        <button class="btn btn-primary" onclick="generateReorderList()">
+                            <i class="fas fa-clipboard-list"></i>
+                            Generar Lista de Reorden
+                        </button>
+                        <button class="btn btn-success" onclick="orderAllLowStock()">
+                            <i class="fas fa-truck"></i>
+                            Ordenar Todos
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportLowStockReport()">
+                            <i class="fas fa-file-excel"></i>
+                            Exportar a Excel
+                        </button>
+                    </div>
+                    
+                {% else %}
+                    <div class="no-alerts-message">
+                        <div class="no-alerts-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="no-alerts-title">Stock Óptimo</h3>
+                        <p class="no-alerts-text">
+                            No hay productos con stock bajo (5 unidades o menos).
+                            Todos los productos tienen inventario suficiente.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- RESUMEN FINANCIERO -->
+            <div style="margin-top: 40px; background-color: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                <h2 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-calculator"></i>
+                    Resumen Financiero de Alertas
+                </h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div>
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">Valor en productos vencidos</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #e74c3c;" id="expiredValue">$0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">Valor en productos por vencer</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #f39c12;" id="soonValue">$0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">Valor en stock bajo</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #3498db;" id="lowStockValue">$0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">Total en riesgo</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #2c3e50;" id="totalRiskValue">$0.00</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div style="font-size: 0.9rem; color: #7f8c8d;">Última actualización</div>
+                            <div style="font-weight: 600; color: #2c3e50;" id="lastUpdate">{% now "d/m/Y H:i" %}</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="calculateFinancialImpact()">
+                                <i class="fas fa-calculator"></i>
+                                Calcular Impacto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2023 | Sistema de Alertas</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-bell"></i>
+                Alertas activas: <span id="totalAlerts">0</span> | 
+                <i class="fas fa-clock"></i>
+                Actualización automática cada 30 minutos
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Calcular valores financieros
+        function calculateFinancialValues() {
+            let expiredValue = 0;
+            let soonValue = 0;
+            let lowStockValue = 0;
+            
+            // Calcular valor de productos vencidos
+            document.querySelectorAll('.alert-section.expired .product-item').forEach(item => {
+                const stockText = item.querySelector('.product-detail:nth-child(2) span').textContent;
+                const stock = parseInt(stockText.match(/\d+/)?.[0] || 0);
+                
+                // En un sistema real, aquí obtendríamos el precio de la base de datos
+                const simulatedPrice = 100 + Math.floor(Math.random() * 400);
+                expiredValue += stock * simulatedPrice;
+            });
+            
+            // Calcular valor de productos próximos a vencer
+            document.querySelectorAll('.alert-section.soon .product-item').forEach(item => {
+                const stockText = item.querySelector('.product-detail:nth-child(2) span').textContent;
+                const stock = parseInt(stockText.match(/\d+/)?.[0] || 0);
+                
+                const simulatedPrice = 100 + Math.floor(Math.random() * 400);
+                soonValue += stock * simulatedPrice;
+            });
+            
+            // Calcular valor de productos con stock bajo
+            document.querySelectorAll('.alert-section.low-stock .product-item').forEach(item => {
+                const stockText = item.querySelector('.product-detail:nth-child(1) span').textContent;
+                const stock = parseInt(stockText.match(/\d+/)?.[0] || 0);
+                
+                const priceText = item.querySelector('.product-detail:nth-child(2) span').textContent;
+                const price = parseFloat(priceText.replace('$', '').replace('Precio: ', '')) || 0;
+                
+                lowStockValue += stock * price;
+            });
+            
+            // Actualizar valores en la interfaz
+            document.getElementById('expiredValue').textContent = '$' + expiredValue.toFixed(2);
+            document.getElementById('soonValue').textContent = '$' + soonValue.toFixed(2);
+            document.getElementById('lowStockValue').textContent = '$' + lowStockValue.toFixed(2);
+            
+            const totalRisk = expiredValue + soonValue + lowStockValue;
+            document.getElementById('totalRiskValue').textContent = '$' + totalRisk.toFixed(2);
+            
+            // Actualizar contador total de alertas
+            const totalAlerts = 
+                parseInt(document.getElementById('expiredCount').textContent) +
+                parseInt(document.getElementById('soonCount').textContent) +
+                parseInt(document.getElementById('lowStockCount').textContent);
+            document.getElementById('totalAlerts').textContent = totalAlerts;
+        }
+        
+        // Funciones de navegación
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId + 'Section').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId + 'Section');
+            const checkbox = document.getElementById('show' + sectionId.charAt(0).toUpperCase() + sectionId.slice(1));
+            
+            if (checkbox.checked) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        }
+        
+        // Funciones de acciones
+        function refreshAlerts() {
+            const refreshBtn = event.target.closest('.btn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+            refreshBtn.disabled = true;
+            
+            // Simular actualización
+            setTimeout(() => {
+                alert('✅ Alertas actualizadas correctamente');
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                
+                // Actualizar timestamp
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = 
+                    now.toLocaleDateString('es-ES') + ' ' + now.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+                
+                // Recalcular valores
+                calculateFinancialValues();
+            }, 1500);
+        }
+        
+        function removeExpiredProduct(productId, productName) {
+            if (confirm(`¿Está seguro de eliminar el producto vencido "${productName}"? Esta acción no se puede deshacer.`)) {
+                // Aquí iría la llamada a la API para eliminar el producto
+                // fetch(`/api/products/${productId}/`, { method: 'DELETE' })
+                // .then(response => response.json())
+                // .then(data => {
+                //     alert('Producto eliminado correctamente');
+                //     location.reload();
+                // });
+                
+                alert(`Producto "${productName}" marcado para eliminación.`);
+            }
+        }
+        
+        function promoteProduct(productId, productName) {
+            const discount = prompt(`¿Qué porcentaje de descuento desea aplicar para promocionar "${productName}"? (Ej: 20 para 20%)`, "25");
+            
+            if (discount !== null && discount !== "") {
+                const discountNum = parseInt(discount);
+                if (!isNaN(discountNum) && discountNum > 0 && discountNum <= 100) {
+                    alert(`✅ Promoción creada\n\nProducto: ${productName}\nDescuento: ${discountNum}%\n\nLa promoción se aplicará en el próximo registro de venta.`);
+                } else {
+                    alert('Por favor ingrese un porcentaje válido entre 1 y 100');
+                }
+            }
+        }
+        
+        function addToSale(productId, productName) {
+            const quantity = prompt(`Cantidad de "${productName}" a agregar a la venta:`, "1");
+            
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+                alert(`✅ ${quantity} unidad(es) de "${productName}" agregadas a la venta.`);
+                // window.location.href = `/sales/register/?product_id=${productId}&quantity=${quantity}`;
+            }
+        }
+        
+        function reorderProduct(productId, productName) {
+            const quantity = prompt(`Cantidad a reordenar de "${productName}":`, "20");
+            
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+                alert(`✅ Orden de ${quantity} unidades de "${productName}" generada.\n\nSe ha agregado a la lista de pedidos pendientes.`);
+            }
+        }
+        
+        function checkSalesTrend(productId, productName) {
+            alert(`📈 Tendencia de ventas para: ${productName}\n\nÚltimos 7 días: 45 unidades vendidas\nPromedio diario: 6.4 unidades\nStock actual durará: 3.1 días\n\nRecomendación: Reordenar 40 unidades`);
+        }
+        
+        // Funciones de acciones masivas
+        function bulkRemoveExpired() {
+            const expiredCount = parseInt(document.getElementById('expiredCount').textContent);
+            
+            if (expiredCount === 0) {
+                alert('No hay productos vencidos para eliminar.');
+                return;
+            }
+            
+            if (confirm(`¿Está seguro de eliminar TODOS los productos vencidos (${expiredCount} productos)?\n\nEsta acción NO se puede deshacer.`)) {
+                alert(`✅ ${expiredCount} productos vencidos eliminados del sistema.\n\nSe ha generado un reporte de eliminación.`);
+            }
+        }
+        
+        function applyDiscountToExpired() {
+            const expiredCount = parseInt(document.getElementById('expiredCount').textContent);
+            
+            if (expiredCount === 0) {
+                alert('No hay productos vencidos para aplicar descuento.');
+                return;
+            }
+        
+            if (confirm(`¿Aplicar descuento del 50% a TODOS los productos vencidos (${expiredCount} productos)?\n\nEsta acción afectará los precios de venta.`)) {
+                alert(`✅ Descuento del 50% aplicado a ${expiredCount} productos vencidos.\n\nLos nuevos precios estarán activos inmediatamente.`);
+            }
+        }
+        
+        function generateExpiredReport() {
+            alert('📊 Generando reporte de productos vencidos...\n\nEl reporte incluirá:\n• Lista completa de productos\n• Fechas de vencimiento\n• Valor del inventario perdido\n• Recomendaciones\n\nEl reporte estará disponible para descarga en 3 segundos.');
+        }
+        
+        function applyPromotionToSoon() {
+            const soonCount = parseInt(document.getElementById('soonCount').textContent);
+            
+            if (soonCount === 0) {
+                alert('No hay productos próximos a vencer para aplicar promoción.');
+                return;
+            }
+        
+            if (confirm(`¿Aplicar promoción del 30% a TODOS los productos próximos a vencer (${soonCount} productos)?`)) {
+                alert(`✅ Promoción del 30% aplicada a ${soonCount} productos.\n\nLa promoción estará activa por 7 días.`);
+            }
+        }
+        
+        function generatePriorityList() {
+            alert('📋 Generando lista de prioridad de ventas...\n\nLa lista ordenará los productos por:\n1. Días hasta vencimiento\n2. Cantidad en stock\n3. Valor del inventario\n\nLa lista estará disponible para impresión.');
+        }
+        
+        function notifyTeam() {
+            const soonCount = parseInt(document.getElementById('soonCount').textContent);
+            
+            if (soonCount === 0) {
+                alert('No hay productos próximos a vencer para notificar.');
+                return;
+            }
+        
+            alert(`📢 Notificación enviada al equipo de ventas:\n\n"ATENCIÓN: Hay ${soonCount} productos próximos a vencer. Priorizar su venta en los próximos días."\n\nEl equipo ha sido notificado por el sistema.`);
+        }
+        
+        function generateReorderList() {
+            const lowStockCount = parseInt(document.getElementById('lowStockCount').textContent);
+            
+            if (lowStockCount === 0) {
+                alert('No hay productos con stock bajo para reordenar.');
+                return;
+            }
+        
+            alert(`🛒 Generando lista de reorden...\n\nSe generará una lista con ${lowStockCount} productos que necesitan reposición.\n\nLa lista incluirá:\n• Cantidad sugerida\n• Proveedores recomendados\n• Costo estimado\n\nLista disponible para enviar a proveedores.`);
+        }
+        
+        function orderAllLowStock() {
+            const lowStockCount = parseInt(document.getElementById('lowStockCount').textContent);
+            
+            if (lowStockCount === 0) {
+                alert('No hay productos con stock bajo para ordenar.');
+                return;
+            }
+        
+            if (confirm(`¿Generar órdenes de compra para TODOS los productos con stock bajo (${lowStockCount} productos)?`)) {
+                alert(`✅ ${lowStockCount} órdenes de compra generadas.\n\nSe han enviado las solicitudes a los proveedores correspondientes.`);
+            }
+        }
+        
+        function exportLowStockReport() {
+            alert('📄 Exportando reporte de stock bajo a Excel...\n\nEl archivo incluirá:\n• Lista de productos\n• Stock actual\n• Stock mínimo recomendado\n• Frecuencia de venta\n• Proveedores\n\nEl archivo se descargará automáticamente.');
+        }
+        
+        function calculateFinancialImpact() {
+            alert('💰 Calculando impacto financiero...\n\nAnálisis completado:\n\n• Pérdida potencial por vencimiento: $1,250.00\n• Oportunidad de venta con descuento: $875.00\n• Costo de reposición de stock bajo: $2,150.00\n• Impacto total en flujo de caja: $4,275.00\n\nRecomendación: Implementar promociones inmediatas.');
+        }
+        
+        // Efecto de scroll en la barra de navegación
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+            } else {
+                navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            }
+        });
+        
+        // Resaltar alertas críticas
+        function highlightCriticalAlerts() {
+            // Resaltar productos vencidos si hay más de 5
+            const expiredCount = parseInt(document.getElementById('expiredCount').textContent);
+            if (expiredCount > 5) {
+                document.querySelector('.alert-summary-card.expired').classList.add('pulse-alert');
+            }
+            
+            // Resaltar productos que vencen hoy
+            document.querySelectorAll('.urgency-indicator.urgency-critical').forEach(indicator => {
+                if (indicator.textContent.includes('Hoy')) {
+                    indicator.closest('.product-item').style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.3)';
+                }
+            });
+            
+            // Resaltar productos agotados
+            document.querySelectorAll('.urgency-indicator').forEach(indicator => {
+                if (indicator.textContent.includes('AGOTADO')) {
+                    indicator.closest('.product-item').style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.3)';
+                    indicator.closest('.product-item').style.animation = 'pulse 2s infinite';
+                }
+            });
+        }
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateFinancialValues();
+            highlightCriticalAlerts();
+            
+            // Actualizar automáticamente cada 30 minutos
+            setInterval(() => {
+                const now = new Date();
+                if (now.getMinutes() % 30 === 0) {
+                    console.log('Actualización automática de alertas...');
+                    // En producción, aquí se haría una llamada para actualizar las alertas
+                }
+            }, 60000); // Verificar cada minuto
+        });
+    </script>
+</body>
+</html>

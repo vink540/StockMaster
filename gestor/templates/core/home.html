@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Productos - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px; /* Para compensar la barra fija */
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            align-items: center;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        /* MENÚ DE USUARIO */
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .user-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            min-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1001;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .user-menu:hover .user-dropdown {
+            display: block;
+        }
+        
+        .user-header {
+            padding: 15px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        
+        .user-header strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .user-header small {
+            opacity: 0.9;
+            font-size: 0.85rem;
+        }
+        
+        .user-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+        
+        .user-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        .user-dropdown a:hover {
+            background-color: #f5f7fa;
+            color: #3498db;
+        }
+        
+        .user-dropdown a i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .user-dropdown a.logout-btn {
+            color: #e74c3c;
+        }
+        
+        .user-dropdown a.logout-btn:hover {
+            background-color: #fde8e8;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        /* ENCABEZADO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* BOTONES */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+        
+        /* PANEL DE FILTROS */
+        .filters-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .filters-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filters-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filters-title i {
+            color: #3498db;
+        }
+        
+        .filters-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .filters-actions {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        /* TABLA DE PRODUCTOS */
+        .products-table-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .table-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .table-title i {
+            color: #3498db;
+        }
+        
+        .table-info {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        
+        .products-table th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .products-table th i {
+            margin-right: 8px;
+        }
+        
+        .products-table td {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .products-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* BADGES DE ESTADO */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .status-normal {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .status-low {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        .status-critical {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        .status-expired {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .status-soon {
+            background-color: #e8f4fc;
+            color: #2980b9;
+        }
+        
+        /* ACCIONES EN TABLA */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* PAGINACIÓN */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination-link:hover {
+            background-color: #d5dbdb;
+        }
+        
+        .pagination-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .pagination-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* ESTADÍSTICAS */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* MENSAJES DE ALERTA */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+                padding: 0;
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .user-menu {
+                width: 100%;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .user-btn {
+                width: 100%;
+                border-radius: 0;
+                padding: 18px 25px;
+                background: none;
+                justify-content: flex-start;
+            }
+            
+            .user-dropdown {
+                position: static;
+                box-shadow: none;
+                background-color: rgba(0, 0, 0, 0.1);
+                margin-top: 0;
+                display: none;
+            }
+            
+            .user-menu:hover .user-dropdown {
+                display: block;
+            }
+            
+            .user-header {
+                background: none;
+                color: #ecf0f1;
+                padding: 15px 25px;
+            }
+            
+            .user-dropdown a {
+                color: #ecf0f1;
+                border-bottom-color: rgba(255, 255, 255, 0.1);
+            }
+            
+            .user-dropdown a:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #3498db;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .filters-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .products-table-container {
+                padding: 15px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link active">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="products/add/" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reporte Mensual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear código</span>
+                    </a>
+                </li>
+                
+                <!-- MENÚ DE USUARIO -->
+                <li class="nav-item user-menu">
+                    {% if user.is_authenticated %}
+                        <button class="user-btn" id="userBtn">
+                            <i class="fas fa-user-circle"></i>
+                            {{ user.username }}
+                            <i class="fas fa-caret-down"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-header">
+                                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                                <small>{{ user.email|default:"No email" }}</small>
+                            </div>
+                            <a href="{% url 'profile' %}">
+                                <i class="fas fa-user"></i>
+                                Mi Perfil
+                            </a>
+                            <a href="{% url 'settings' %}">
+                                <i class="fas fa-cog"></i>
+                                Configuración
+                            </a>
+                            <div style="height: 1px; background: #eee; margin: 5px 0;"></div>
+                            <a href="{% url 'logout' %}" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-link">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Iniciar Sesión</span>
+                        </a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-boxes"></i>
+                    Lista de Productos
+                </h1>
+                
+                <div class="header-actions">
+                    <a href="{% url 'add_product' %}" class="btn btn-success">
+                        <i class="fas fa-plus-circle"></i>
+                        Agregar Producto
+                    </a>
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al Inicio
+                    </a>
+                </div>
+            </div>
+            
+            <!-- MENSAJES DE AUTENTICACIÓN -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas 
+                            {% if message.tags == 'success' %}fa-check-circle{% endif %}
+                            {% if message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle{% endif %}
+                            {% if message.tags == 'warning' %}fa-exclamation-triangle{% endif %}
+                            {% if message.tags == 'info' %}fa-info-circle{% endif %}
+                        "></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- ESTADÍSTICAS RÁPIDAS -->
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #e8f4fc; color: #3498db;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ products|length }}</h3>
+                        <p>Total de Productos</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #fdebd0; color: #f39c12;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="lowStockCount">0</h3>
+                        <p>Stock Bajo (≤5)</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #fadbd8; color: #e74c3c;">
+                        <i class="fas fa-skull-crossbones"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="expiredCount">0</h3>
+                        <p>Productos Vencidos</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #d5f4e6; color: #27ae60;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalValue">$0</h3>
+                        <p>Valor Total Inventario</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PANEL DE FILTROS -->
+            <div class="filters-panel">
+                <div class="filters-header">
+                    <h2 class="filters-title">
+                        <i class="fas fa-filter"></i>
+                        Filtros de Búsqueda
+                    </h2>
+                    
+                    <div class="filters-actions">
+                        <button type="button" class="btn btn-secondary" id="resetFilters">
+                            <i class="fas fa-redo"></i>
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+                
+                <form method="GET" class="filters-form" id="filterForm">
+                    <!-- BÚSQUEDA POR NOMBRE -->
+                    <div class="form-group">
+                        <label class="form-label">Buscar Producto</label>
+                        <div style="position: relative;">
+                            <input type="text" 
+                                   name="search" 
+                                   class="form-control" 
+                                   placeholder="Nombre del producto..."
+                                   value="{{ request.GET.search|default:'' }}">
+                            <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #7f8c8d;"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- FILTRAR POR CATEGORÍA -->
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select name="category" class="form-control">
+                            <option value="all">Todas las categorías</option>
+                            {% for c in categories %}
+                                <option value="{{ c.id }}" {% if request.GET.category == c.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ c.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- FILTROS POR ESTADO -->
+                    <div class="form-group">
+                        <label class="form-label">Filtrar por Estado</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" 
+                                       name="expired" 
+                                       value="1" 
+                                       id="expiredCheckbox"
+                                       {% if request.GET.expired %}checked{% endif %}>
+                                <label for="expiredCheckbox">Productos Vencidos</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" 
+                                       name="soon" 
+                                       value="1" 
+                                       id="soonCheckbox"
+                                       {% if request.GET.soon %}checked{% endif %}>
+                                <label for="soonCheckbox">Próximos a vencer (10 días)</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" 
+                                       name="low_stock" 
+                                       value="1" 
+                                       id="lowStockCheckbox"
+                                       {% if request.GET.low_stock %}checked{% endif %}>
+                                <label for="lowStockCheckbox">Stock bajo (≤5 unidades)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOTÓN DE APLICAR FILTROS -->
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; height: 46px;">
+                            <i class="fas fa-filter"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- TABLA DE PRODUCTOS -->
+            <div class="products-table-container">
+                <div class="table-header">
+                    <h2 class="table-title">
+                        <i class="fas fa-list"></i>
+                        Productos Registrados
+                    </h2>
+                    
+                    <div class="table-info">
+                        Mostrando <strong>{{ products|length }}</strong> productos
+                        {% if request.GET.search %}
+                            para "<strong>{{ request.GET.search }}</strong>"
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if products %}
+                    <div style="overflow-x: auto;">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-tag"></i> Nombre</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio</th>
+                                    <th><i class="fas fa-boxes"></i> Stock</th>
+                                    <th><i class="fas fa-folder"></i> Categoría</th>
+                                    <th><i class="fas fa-calendar-alt"></i> Vencimiento</th>
+                                    <th><i class="fas fa-bolt"></i> Estado</th>
+                                    <th><i class="fas fa-cog"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in products %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ p.name }}</strong>
+                                        {% if p.barcode %}
+                                            <br>
+                                            <small style="color: #7f8c8d; font-size: 0.85rem;">
+                                                <i class="fas fa-barcode"></i> {{ p.barcode }}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>${{ p.price|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span>{{ p.stock }}</span>
+                                            {% if p.stock <= 5 %}
+                                                <span class="status-badge status-low">
+                                                    <i class="fas fa-exclamation-triangle"></i> Bajo
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if p.category %}
+                                            <span class="status-badge status-normal">{{ p.category }}</span>
+                                        {% else %}
+                                            <span style="color: #7f8c8d;">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if p.expiration_date %} 
+                                            {% now "Y-m-d" as today_str %}
+                                            {% if p.expiration_date < today_str %}
+                                                <span class="status-badge status-expired">
+                                                    <i class="fas fa-skull-crossbones"></i> {{ p.expiration_date }}
+                                                </span>
+                                            {% else %}
+                                                {{ p.expiration_date }}
+                                            {% endif %}
+                                        {% else %}
+                                            <span style="color: #7f8c8d;">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% now "Y-m-d" as today_str %}
+                                        {% if p.expiration_date %}
+                                            {% if p.expiration_date < today_str %}
+                                                <span class="status-badge status-critical">Vencido</span>
+                                            {% else %}
+                                                <span class="status-badge status-normal">OK</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="status-badge status-normal">OK</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="actions-cell">
+                                        <a href="{% url 'edit_product' p.id %}" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <a href="{% url 'delete_product' p.id %}" 
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('¿Está seguro de eliminar el producto {{ p.name }}?');">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- PAGINACIÓN (si está disponible) -->
+                    {% if products.has_other_pages %}
+                    <div class="pagination">
+                        {% if products.has_previous %}
+                            <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="pagination-link">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for i in products.paginator.page_range %}
+                            {% if products.number == i %}
+                                <span class="pagination-link active">{{ i }}</span>
+                            {% else %}
+                                <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="pagination-link">{{ i }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if products.has_next %}
+                            <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="pagination-link">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                {% else %}
+                    <!-- MENSAJE SI NO HAY PRODUCTOS -->
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 5rem; color: #bdc3c7; margin-bottom: 20px;">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3 style="color: #7f8c8d; margin-bottom: 15px;">No se encontraron productos</h3>
+                        <p style="color: #95a5a6; margin-bottom: 30px;">
+                            {% if request.GET.search or request.GET.category or request.GET.expired or request.GET.soon or request.GET.low_stock %}
+                                Intenta ajustar los filtros de búsqueda
+                            {% else %}
+                                No hay productos registrados en el sistema
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'add_product' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i>
+                            Agregar Primer Producto
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2023 | Lista de Productos</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-database"></i>
+                Total de productos registrados: {{ products|length }}
+            </p>
+            <p style="margin-top: 5px; font-size: 0.8rem;">
+                <i class="fas fa-user"></i>
+                Usuario: {{ user.username|default:"No autenticado" }}
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Limpiar filtros
+        document.getElementById('resetFilters').addEventListener('click', function() {
+            document.getElementById('filterForm').reset();
+            window.location.href = window.location.pathname;
+        });
+        
+        // Calcular estadísticas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contar productos con stock bajo (≤5)
+            const lowStockCount = document.querySelectorAll('.status-low').length;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            
+            // Contar productos vencidos
+            const expiredCount = document.querySelectorAll('.status-expired, .status-critical').length;
+            document.getElementById('expiredCount').textContent = expiredCount;
+            
+            // Calcular valor total del inventario
+            let totalValue = 0;
+            const priceElements = document.querySelectorAll('.products-table td:nth-child(2) strong');
+            const stockElements = document.querySelectorAll('.products-table td:nth-child(3) span:first-child');
+            
+            for (let i = 0; i < priceElements.length; i++) {
+                const priceText = priceElements[i].textContent.replace('$', '').replace(',', '');
+                const price = parseFloat(priceText);
+                const stock = parseInt(stockElements[i].textContent);
+                if (!isNaN(price) && !isNaN(stock)) {
+                    totalValue += price * stock;
+                }
+            }
+            
+            document.getElementById('totalValue').textContent = '$' + totalValue.toFixed(2);
+            
+            // Resaltar filas con productos vencidos o stock crítico
+            const rows = document.querySelectorAll('.products-table tbody tr');
+            rows.forEach(row => {
+                if (row.querySelector('.status-critical') || row.querySelector('.status-expired')) {
+                    row.style.backgroundColor = '#fff5f5';
+                } else if (row.querySelector('.status-low')) {
+                    row.style.backgroundColor = '#fffaf0';
+                }
+            });
+            
+            // Efecto de scroll en la barra de navegación
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                } else {
+                    navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }
+            });
+            
+            // Cerrar dropdown de usuario al hacer clic fuera
+            document.addEventListener('click', function(event) {
+                const userMenu = document.querySelector('.user-menu');
+                const userBtn = document.getElementById('userBtn');
+                const userDropdown = document.getElementById('userDropdown');
+                
+                if (userBtn && userDropdown && window.innerWidth > 992) {
+                    if (!userMenu.contains(event.target)) {
+                        userDropdown.style.display = 'none';
+                    } else if (event.target === userBtn || userBtn.contains(event.target)) {
+                        userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
+                    }
+                }
+            });
+            
+            // Confirmación para logout
+            const logoutBtn = document.querySelector('.logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    if (!confirm('¿Está seguro que desea cerrar sesión?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

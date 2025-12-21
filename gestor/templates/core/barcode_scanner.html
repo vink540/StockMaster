@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escanear Producto - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .scanner-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .scanner-left {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .scanner-right {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .scanner-box {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            height: 100%;
+        }
+        
+        .scanner-icon {
+            font-size: 5rem;
+            color: #3498db;
+            margin-bottom: 25px;
+        }
+        
+        .scanner-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .scanner-description {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        
+        .scanner-input-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .scanner-input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+        
+        .scanner-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        .scanner-input-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+            font-size: 1.8rem;
+        }
+        
+        .scanner-hint {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        /* CAMERA SCANNER */
+        #camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #camera-modal.active {
+            display: flex;
+        }
+        
+        .camera-container {
+            position: relative;
+            max-width: 640px;
+            width: 90%;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .camera-header h3 {
+            font-size: 1.3rem;
+        }
+        
+        .close-camera {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+        
+        .close-camera:hover {
+            color: #e74c3c;
+            transform: scale(1.1);
+        }
+        
+        #camera-view {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            background-color: #000;
+        }
+        
+        #camera-view video,
+        #camera-view canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .scan-frame {
+            width: 80%;
+            max-width: 400px;
+            height: 200px;
+            border: 3px solid #3498db;
+            border-radius: 12px;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .scan-frame::before,
+        .scan-frame::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #3498db;
+        }
+        
+        .scan-frame::before {
+            top: -4px;
+            left: -4px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .scan-frame::after {
+            bottom: -4px;
+            right: -4px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        .scan-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, #3498db, transparent);
+            animation: scanLine 2s linear infinite;
+        }
+        
+        @keyframes scanLine {
+            0%, 100% { top: 0; }
+            50% { top: calc(100% - 3px); }
+        }
+        
+        .camera-instructions {
+            padding: 20px;
+            background-color: #f8f9fa;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .result-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .result-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .status-error {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        .status-waiting {
+            background-color: #e8f4fc;
+            color: #2980b9;
+        }
+        
+        .product-found {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .product-name {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        
+        .product-barcode {
+            background-color: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid #ddd;
+        }
+        
+        .product-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .product-detail {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .product-not-found {
+            background-color: #fff8e1;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #f39c12;
+            text-align: center;
+        }
+        
+        .not-found-icon {
+            font-size: 4rem;
+            color: #f39c12;
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+            transform: translateY(-2px);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 50px;
+        }
+        
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .scanner-container {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .scanner-box, .result-container {
+                padding: 25px;
+            }
+            
+            #camera-view {
+                height: 360px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="{% url 'home' %}" class="nav-link"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="{% url 'product_list' %}" class="nav-link"><i class="fas fa-boxes"></i> Productos</a></li>
+                <li><a href="{% url 'sales_list' %}" class="nav-link"><i class="fas fa-cash-register"></i> Ventas</a></li>
+                <li><a href="{% url 'scan' %}" class="nav-link active"><i class="fas fa-barcode"></i> Escanear</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <div class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-barcode"></i>
+                    Escanear Producto
+                </h1>
+                
+                <a href="{% url 'product_list' %}" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver a Productos
+                </a>
+            </div>
+            
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #3498db;">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalScans">0</h3>
+                        <p>Escaneos Hoy</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #27ae60;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="successfulScans">0</h3>
+                        <p>Encontrados</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #f39c12;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="notFoundScans">0</h3>
+                        <p>No Encontrados</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #9b59b6;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="avgScanTime">0.0s</h3>
+                        <p>Tiempo Promedio</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="scanner-container">
+                <div class="scanner-left">
+                    <div class="scanner-box">
+                        <div class="scanner-icon">
+                            <i class="fas fa-barcode"></i>
+                        </div>
+                        
+                        <h2 class="scanner-title">Escanear Código de Barras</h2>
+                        
+                        <p class="scanner-description">
+                            Use un lector USB, la cámara de su dispositivo, o ingrese el código manualmente.
+                        </p>
+                        
+                        <div class="scanner-input-container">
+                            <input type="text" 
+                                   id="barcode-input" 
+                                   class="scanner-input" 
+                                   placeholder="Código de barras" 
+                                   autofocus
+                                   maxlength="20">
+                            <div class="scanner-input-icon">
+                                <i class="fas fa-barcode"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="scanner-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Presione <kbd>ESC</kbd> para limpiar
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; margin-top: 30px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="clearScanner()">
+                                <i class="fas fa-eraser"></i>
+                                Limpiar
+                            </button>
+                            
+                            <button class="btn btn-success" onclick="openCameraScanner()">
+                                <i class="fas fa-camera"></i>
+                                Usar Cámara
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scanner-right">
+                    <div class="result-container">
+                        <div class="result-header">
+                            <h2 class="result-title">
+                                <i class="fas fa-search"></i>
+                                Resultado del Escaneo
+                            </h2>
+                            
+                            <div class="result-status status-waiting" id="scanStatus">
+                                ESPERANDO ESCANEO
+                            </div>
+                        </div>
+                        
+                        <div id="result">
+                            <div style="text-align: center; padding: 40px 20px;">
+                                <div style="font-size: 4rem; color: #bdc3c7; margin-bottom: 20px;">
+                                    <i class="fas fa-barcode"></i>
+                                </div>
+                                <h3 style="color: #7f8c8d; margin-bottom: 15px;">Esperando código de barras</h3>
+                                <p style="color: #95a5a6;">
+                                    Escanee un producto para ver su información aquí.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-actions" id="quickActions" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- MODAL DE CÁMARA -->
+    <div id="camera-modal">
+        <div class="camera-container">
+            <div class="camera-header">
+                <h3><i class="fas fa-camera"></i> Escanear con Cámara</h3>
+                <button class="close-camera" onclick="closeCameraScanner()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="camera-view">
+                <div class="camera-overlay">
+                    <div class="scan-frame">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="camera-instructions">
+                <i class="fas fa-info-circle"></i>
+                Apunte la cámara hacia el código de barras y manténgalo dentro del marco
+            </div>
+        </div>
+    </div>
+    
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2024</p>
+        </div>
+    </footer>
+
+    <script>
+        // Variables globales
+        let totalScans = 0;
+        let successfulScans = 0;
+        let notFoundScans = 0;
+        let scanTimes = [];
+        let currentScannedProduct = null;
+        let cameraActive = false;
+        
+        // Cargar estadísticas
+        function loadStats() {
+            const stats = JSON.parse(localStorage.getItem('scannerStats')) || {
+                totalScans: 0,
+                successfulScans: 0,
+                notFoundScans: 0,
+                scanTimes: []
+            };
+            
+            totalScans = stats.totalScans;
+            successfulScans = stats.successfulScans;
+            notFoundScans = stats.notFoundScans;
+            scanTimes = stats.scanTimes;
+            updateStatsDisplay();
+        }
+        
+        function saveStats() {
+            localStorage.setItem('scannerStats', JSON.stringify({
+                totalScans,
+                successfulScans,
+                notFoundScans,
+                scanTimes: scanTimes.slice(-100)
+            }));
+            updateStatsDisplay();
+        }
+        
+        function updateStatsDisplay() {
+            document.getElementById('totalScans').textContent = totalScans;
+            document.getElementById('successfulScans').textContent = successfulScans;
+            document.getElementById('notFoundScans').textContent = notFoundScans;
+            
+            const avgTime = scanTimes.length > 0 
+                ? (scanTimes.reduce((a, b) => a + b, 0) / scanTimes.length).toFixed(1)
+                : 0.0;
+            document.getElementById('avgScanTime').textContent = avgTime + 's';
+        }
+        
+        // Procesar código de barras
+        function processBarcode(code) {
+            if (!code || code.length < 3) return;
+            
+            const startTime = Date.now();
+            const scanStatus = document.getElementById('scanStatus');
+            const resultDiv = document.getElementById('result');
+            
+            scanStatus.className = 'result-status status-waiting';
+            scanStatus.textContent = 'PROCESANDO...';
+            resultDiv.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <div class="pulse-animation">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #3498db;"></i>
+                    </div>
+                    <h3 style="color: #2c3e50; margin: 20px 0 10px;">Buscando producto...</h3>
+                    <p style="color: #7f8c8d;">Código: <strong>${code}</strong></p>
+                </div>
+            `;
+            
+            // Llamada REAL a tu API
+            fetch(`{% url 'search_barcode' %}?barcode=${encodeURIComponent(code)}`)
+                .then(res => res.json())
+                .then(data => handleScanResult(data, code, startTime))
+                .catch(error => {
+                    console.error('Error:', error);
+                    handleScanResult({ found: false, error: true }, code, startTime);
+                });
+        }
+        
+        function handleScanResult(data, code, startTime) {
+            totalScans++;
+            const scanTime = (Date.now() - startTime) / 1000;
+            scanTimes.push(scanTime);
+            
+            const scanStatus = document.getElementById('scanStatus');
+            const resultDiv = document.getElementById('result');
+            const quickActions = document.getElementById('quickActions');
+            
+            if (data.found) {
+                successfulScans++;
+                scanStatus.className = 'result-status status-success';
+                scanStatus.textContent = 'PRODUCTO ENCONTRADO';
+                
+                resultDiv.innerHTML = `
+                    <div class="product-found">
+                        <div class="product-header">
+                            <div class="product-name">${data.name || 'Producto'}</div>
+                            <div class="product-barcode">${code}</div>
+                        </div>
+                        <div class="product-details">
+                            <div class="product-detail">
+                                <div class="detail-label">Precio</div>
+                                <div class="detail-value">${(data.price || 0).toFixed(2)}</div>
+                            </div>
+                            <div class="product-detail">
+                                <div class="detail-label">Stock</div>
+                                <div class="detail-value">${data.stock || 0} unidades</div>
+                            </div>
+                            <div class="product-detail">
+                                <div class="detail-label">Categoría</div>
+                                <div class="detail-value">${data.category || 'Sin categoría'}</div>
+                            </div>
+                        </div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem; margin-top: 15px;">
+                            <i class="fas fa-info-circle"></i>
+                            Producto encontrado en ${scanTime.toFixed(1)} segundos
+                        </div>
+                    </div>
+                `;
+                quickActions.style.display = 'grid';
+                currentScannedProduct = data;
+            } else {
+                notFoundScans++;
+                scanStatus.className = 'result-status status-error';
+                scanStatus.textContent = 'NO ENCONTRADO';
+                
+                resultDiv.innerHTML = `
+                    <div class="product-not-found">
+                        <div class="not-found-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h3 style="color: #d35400; margin-bottom: 15px;">Producto no registrado</h3>
+                        <p style="color: #8e440b; margin-bottom: 20px;">
+                            El código <strong>${code}</strong> no existe en la base de datos.
+                        </p>
+                    </div>
+                `;
+                quickActions.style.display = 'none';
+            }
+            
+            saveStats();
+            
+            setTimeout(() => {
+                document.getElementById('barcode-input').value = '';
+                document.getElementById('barcode-input').focus();
+            }, 1000);
+        }
+        
+        // Event listeners para input
+        document.getElementById('barcode-input').addEventListener('input', function() {
+            const code = this.value.trim();
+            if (code.length >= 8) {
+                processBarcode(code);
+            }
+        });
+        
+        document.getElementById('barcode-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && this.value.trim().length >= 3) {
+                e.preventDefault();
+                processBarcode(this.value.trim());
+            }
+            if (e.key === 'Escape') {
+                clearScanner();
+            }
+        });
+        
+        function clearScanner() {
+            document.getElementById('barcode-input').value = '';
+            document.getElementById('barcode-input').focus();
+            
+            document.getElementById('result').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 4rem; color: #bdc3c7; margin-bottom: 20px;">
+                        <i class="fas fa-barcode"></i>
+                    </div>
+                    <h3 style="color: #7f8c8d; margin-bottom: 15px;">Esperando código de barras</h3>
+                    <p style="color: #95a5a6;">Escanee un producto para ver su información aquí.</p>
+                </div>
+            `;
+            
+            document.getElementById('scanStatus').className = 'result-status status-waiting';
+            document.getElementById('scanStatus').textContent = 'ESPERANDO ESCANEO';
+            document.getElementById('quickActions').style.display = 'none';
+        }
+        
+        // FUNCIONES DE CÁMARA
+        function openCameraScanner() {
+            document.getElementById('camera-modal').classList.add('active');
+            cameraActive = true;
+            
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#camera-view'),
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: [
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_128_reader",
+                        "code_39_reader",
+                        "upc_reader",
+                        "upc_e_reader"
+                    ]
+                },
+                locate: true
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    alert('Error al acceder a la cámara. Asegúrese de dar permisos.');
+                    closeCameraScanner();
+                    return;
+                }
+                Quagga.start();
+            });
+            
+            Quagga.onDetected(function(result) {
+                if (result && result.codeResult && result.codeResult.code) {
+                    const code = result.codeResult.code;
+                    console.log('Código detectado:', code);
+                    
+                    closeCameraScanner();
+                    
+                    document.getElementById('barcode-input').value = code;
+                    processBarcode(code);
+                }
+            });
+        }
+        
+        function closeCameraScanner() {
+            if (cameraActive) {
+                Quagga.stop();
+                cameraActive = false;
+            }
+            document.getElementById('camera-modal').classList.remove('active');
+        }
+        
+        // Toggle menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            document.getElementById('barcode-input').focus();
+        });
+    </script>
+</body>
+</html>

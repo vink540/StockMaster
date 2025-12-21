@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px; /* Para compensar la barra fija */
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        /* TÍTULO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* FORMULARIO */
+        .form-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-header h2 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-header h2 i {
+            color: #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            color: #3498db;
+            width: 20px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        .form-control:disabled {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        /* BOTONES */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        /* MENSAJES DE ERROR/ÉXITO */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+        }
+        
+        /* CAMPO DE CÓDIGO DE BARRAS ESPECIAL */
+        .barcode-field {
+            position: relative;
+        }
+        
+        .barcode-scan-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+        
+        .barcode-scan-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products/new/" class="nav-link active">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reporte Mensual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear código</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Agregar Producto
+                </h1>
+                
+                <a href="/products/" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver a Productos
+                </a>
+            </div>
+            
+            <!-- MENSAJES DE ALERTA -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas 
+                            {% if message.tags == 'success' %}fa-check-circle{% endif %}
+                            {% if message.tags == 'error' %}fa-exclamation-circle{% endif %}
+                            {% if message.tags == 'info' %}fa-info-circle{% endif %}
+                        "></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- FORMULARIO -->
+            <div class="form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-edit"></i> Complete los datos del producto</h2>
+                </div>
+                
+                <form method="POST" id="addProductForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    Nombre del Producto
+                                </label>
+                                <input type="text" 
+                                       name="name" 
+                                       class="form-control" 
+                                       placeholder="Ej: Leche Entera 1L" 
+                                       required
+                                       maxlength="100">
+                                <span class="form-hint">Ingrese el nombre completo del producto</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    Precio
+                                </label>
+                                <input type="number" 
+                                       name="price" 
+                                       class="form-control" 
+                                       placeholder="0.00" 
+                                       step="0.01" 
+                                       min="0"
+                                       required>
+                                <span class="form-hint">Precio de venta al público</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-boxes"></i>
+                                    Stock Inicial
+                                </label>
+                                <input type="number" 
+                                       name="stock" 
+                                       class="form-control" 
+                                       placeholder="0" 
+                                       min="0"
+                                       required>
+                                <span class="form-hint">Cantidad disponible en inventario</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Fecha de Vencimiento
+                                </label>
+                                <input type="date" 
+                                       name="expiration_date" 
+                                       class="form-control"
+                                       min="{{ today|date:'Y-m-d' }}">
+                                <span class="form-hint">Opcional - Deje vacío si no aplica</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CAMPOS ADICIONALES (OPCIONALES PARA EXPANSIÓN FUTURA) -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-barcode"></i>
+                            Código de Barras
+                        </label>
+                        <div class="barcode-field">
+                            <input type="text" 
+                                   name="barcode" 
+                                   class="form-control" 
+                                   placeholder="123456789012"
+                                   maxlength="50">
+                            <button type="button" class="barcode-scan-btn" id="scanBarcodeBtn">
+                                <i class="fas fa-barcode"></i>
+                                Escanear
+                            </button>
+                        </div>
+                        <span class="form-hint">Ingrese manualmente o escanee el código de barras</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-folder"></i>
+                            Categoría
+                        </label>
+                        <select name="category" class="form-control">
+                            <option value="" selected>-- Seleccione una categoría --</option>
+                            <option value="lacteos">Lácteos</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="snacks">Snacks</option>
+                            <option value="dulces">Dulces</option>
+                            <option value="panaderia">Panadería</option>
+                            <option value="limpieza">Limpieza</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-align-left"></i>
+                            Descripción (Opcional)
+                        </label>
+                        <textarea name="description" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Descripción detallada del producto..."></textarea>
+                    </div>
+                    
+                    <!-- BOTONES DE ACCIÓN -->
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i>
+                            Limpiar Formulario
+                        </button>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Guardar Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- INFORMACIÓN ADICIONAL -->
+            <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+                <h3 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-lightbulb"></i>
+                    Consejos para agregar productos
+                </h3>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li style="padding: 8px 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                        <span>Verifique que el producto no esté ya registrado en el sistema</span>
+                    </li>
+                    <li style="padding: 8px 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                        <span>Complete la fecha de vencimiento para productos perecederos</span>
+                    </li>
+                    <li style="padding: 8px 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                        <span>Use el código de barras para facilitar las ventas futuras</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2023 | Agregar Producto</p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Simulación de escaneo de código de barras
+        document.getElementById('scanBarcodeBtn').addEventListener('click', function() {
+            // Simular escaneo - en una implementación real esto se conectaría a un lector
+            const barcodeInput = document.querySelector('input[name="barcode"]');
+            const simulatedBarcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+            
+            barcodeInput.value = simulatedBarcode;
+            
+            // Mostrar notificación
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success';
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> Código de barras escaneado: ${simulatedBarcode}`;
+            
+            // Insertar después del botón de escaneo
+            this.parentElement.parentElement.appendChild(notification);
+            
+            // Remover notificación después de 3 segundos
+            setTimeout(() => notification.remove(), 3000);
+        });
+        
+        // Establecer fecha mínima como hoy para la fecha de vencimiento
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const expirationField = document.querySelector('input[name="expiration_date"]');
+            
+            if (expirationField && !expirationField.min) {
+                expirationField.min = today;
+            }
+            
+            // Validación del formulario antes de enviar
+            const form = document.getElementById('addProductForm');
+            form.addEventListener('submit', function(event) {
+                const nameField = document.querySelector('input[name="name"]');
+                const priceField = document.querySelector('input[name="price"]');
+                const stockField = document.querySelector('input[name="stock"]');
+                
+                let isValid = true;
+                
+                // Validar que el precio sea positivo
+                if (parseFloat(priceField.value) <= 0) {
+                    alert('El precio debe ser mayor a 0');
+                    priceField.focus();
+                    isValid = false;
+                }
+                
+                // Validar que el stock no sea negativo
+                if (parseInt(stockField.value) < 0) {
+                    alert('El stock no puede ser negativo');
+                    stockField.focus();
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+            
+            // Efecto de scroll en la barra de navegación
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                } else {
+                    navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

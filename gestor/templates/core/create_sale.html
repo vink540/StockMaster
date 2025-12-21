@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Venta - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px; /* Para compensar la barra fija */
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+            min-height: calc(100vh - 180px);
+        }
+        
+        /* ENCABEZADO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* BOTONES */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* PANEL DE FORMULARIO */
+        .form-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-title i {
+            color: #3498db;
+        }
+        
+        /* ESTILOS DEL FORMULARIO */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            color: #7f8c8d;
+            width: 20px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 45px;
+        }
+        
+        /* ALERTAS */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert-error {
+            background-color: #fde8e8;
+            color: #c0392b;
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        
+        .alert-info {
+            background-color: #e8f4fc;
+            color: #2980b9;
+            border-left: 5px solid #3498db;
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+        }
+        
+        /* TARJETA DE INFORMACIÓN */
+        .info-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .info-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-card p {
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        /* ESTADO DEL STOCK */
+        .stock-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .stock-normal {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .stock-low {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        .stock-critical {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        /* ACCIONES DEL FORMULARIO */
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .form-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+        
+        /* INFORMACIÓN DE LA VENTA */
+        .sale-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .sale-summary h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .summary-item {
+            margin-bottom: 10px;
+        }
+        
+        .summary-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .summary-total {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #27ae60;
+            grid-column: span 2;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-panel {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-total {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-title {
+                font-size: 1.3rem;
+            }
+            
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products/add/" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link active">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reporte Mensual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear código</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-cash-register"></i>
+                    Registrar Venta
+                </h1>
+                
+                <div class="header-actions">
+                    <a href="{% url 'sales_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i>
+                        Ver Ventas
+                    </a>
+                    <a href="/products/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver a Productos
+                    </a>
+                </div>
+            </div>
+            
+            <!-- TARJETA DE INFORMACIÓN -->
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> Información importante</h3>
+                <p>• Selecciona un producto y la cantidad a vender.</p>
+                <p>• El sistema validará automáticamente el stock disponible.</p>
+                <p>• La venta se registrará inmediatamente y actualizará el inventario.</p>
+            </div>
+            
+            <!-- ALERTA DE ERROR -->
+            {% if error %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <strong>Error:</strong> {{ error }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- PANEL DE FORMULARIO -->
+            <div class="form-panel">
+                <h2 class="form-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Detalles de la Venta
+                </h2>
+                
+                <form method="POST" id="saleForm">
+                    {% csrf_token %}
+                    
+                    <!-- PRODUCTO -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-box"></i>
+                            Producto
+                        </label>
+                        <select name="product" class="form-control" id="productSelect" required>
+                            <option value="">-- Selecciona un producto --</option>
+                            {% for p in products %}
+                                <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-price="{{ p.price }}">
+                                    {{ p.name }} (Stock: {{ p.stock }}) - ${{ p.price|floatformat:2 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small style="color: #7f8c8d; display: block; margin-top: 5px;">
+                            Stock disponible: <span id="stockDisplay">0</span> unidades
+                        </small>
+                    </div>
+                    
+                    <!-- CANTIDAD -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-hashtag"></i>
+                            Cantidad
+                        </label>
+                        <input type="number" 
+                               name="quantity" 
+                               id="quantityInput" 
+                               class="form-control" 
+                               min="1" 
+                               value="1" 
+                               required
+                               placeholder="Ingresa la cantidad a vender">
+                    </div>
+                    
+                    <!-- RESUMEN DE LA VENTA -->
+                    <div class="sale-summary">
+                        <h3><i class="fas fa-calculator"></i> Resumen de Venta</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">Precio unitario</div>
+                                <div id="unitPrice" class="summary-value">$0.00</div>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <div class="summary-label">Cantidad</div>
+                                <div id="quantityDisplay" class="summary-value">0</div>
+                            </div>
+                            
+                            <div id="totalSummary" class="summary-total">
+                                Total: $0.00
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ACCIONES -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-check-circle"></i>
+                            Registrar Venta
+                        </button>
+                        
+                        <a href="{% url 'sales_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2023 | Registrar Venta</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-box"></i>
+                Productos disponibles: {{ products|length }}
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Cálculo de precios y validación de stock
+        const productSelect = document.getElementById('productSelect');
+        const quantityInput = document.getElementById('quantityInput');
+        const stockDisplay = document.getElementById('stockDisplay');
+        const unitPrice = document.getElementById('unitPrice');
+        const quantityDisplay = document.getElementById('quantityDisplay');
+        const totalSummary = document.getElementById('totalSummary');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        let selectedProduct = null;
+        
+        // Actualizar información cuando se selecciona un producto
+        productSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (selectedOption.value) {
+                selectedProduct = {
+                    stock: parseInt(selectedOption.dataset.stock),
+                    price: parseFloat(selectedOption.dataset.price),
+                    name: selectedOption.text.split('(')[0].trim()
+                };
+                
+                stockDisplay.textContent = selectedProduct.stock;
+                unitPrice.textContent = `$${selectedProduct.price.toFixed(2)}`;
+                
+                // Actualizar cantidad máxima
+                quantityInput.max = selectedProduct.stock;
+                
+                // Si la cantidad actual es mayor al stock, ajustarla
+                if (parseInt(quantityInput.value) > selectedProduct.stock) {
+                    quantityInput.value = selectedProduct.stock;
+                }
+                
+                // Habilitar el campo de cantidad
+                quantityInput.disabled = false;
+                
+                // Actualizar cálculo
+                updateCalculation();
+            } else {
+                selectedProduct = null;
+                stockDisplay.textContent = '0';
+                unitPrice.textContent = '$0.00';
+                quantityInput.disabled = true;
+                updateCalculation();
+            }
+        });
+        
+        // Actualizar cálculo cuando cambia la cantidad
+        quantityInput.addEventListener('input', updateCalculation);
+        
+        function updateCalculation() {
+            const quantity = parseInt(quantityInput.value) || 0;
+            quantityDisplay.textContent = quantity;
+            
+            if (selectedProduct && quantity > 0) {
+                const total = selectedProduct.price * quantity;
+                totalSummary.innerHTML = `Total: <strong>$${total.toFixed(2)}</strong>`;
+                
+                // Validar stock
+                if (quantity > selectedProduct.stock) {
+                    totalSummary.style.color = '#e74c3c';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.6';
+                    submitBtn.style.cursor = 'not-allowed';
+                    
+                    // Mostrar advertencia
+                    if (!document.getElementById('stockWarning')) {
+                        const warning = document.createElement('div');
+                        warning.id = 'stockWarning';
+                        warning.className = 'alert alert-error';
+                        warning.style.marginTop = '10px';
+                        warning.innerHTML = `
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <strong>Stock insuficiente:</strong> 
+                                Solo hay ${selectedProduct.stock} unidades disponibles.
+                            </div>
+                        `;
+                        quantityInput.parentNode.appendChild(warning);
+                    }
+                } else {
+                    totalSummary.style.color = '#27ae60';
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    
+                    // Eliminar advertencia si existe
+                    const warning = document.getElementById('stockWarning');
+                    if (warning) {
+                        warning.remove();
+                    }
+                    
+                    // Mostrar advertencia si el stock es bajo
+                    if (selectedProduct.stock - quantity <= 5 && selectedProduct.stock - quantity > 0) {
+                        if (!document.getElementById('lowStockWarning')) {
+                            const lowWarning = document.createElement('div');
+                            lowWarning.id = 'lowStockWarning';
+                            lowWarning.className = 'alert alert-info';
+                            lowWarning.style.marginTop = '10px';
+                            lowWarning.innerHTML = `
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div>
+                                    <strong>Stock bajo después de la venta:</strong> 
+                                    Quedarán ${selectedProduct.stock - quantity} unidades.
+                                </div>
+                            `;
+                            quantityInput.parentNode.appendChild(lowWarning);
+                        }
+                    } else {
+                        const lowWarning = document.getElementById('lowStockWarning');
+                        if (lowWarning) {
+                            lowWarning.remove();
+                        }
+                    }
+                }
+            } else {
+                totalSummary.innerHTML = 'Total: $0.00';
+                totalSummary.style.color = '#27ae60';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+        }
+        
+        // Validar el formulario antes de enviar
+        document.getElementById('saleForm').addEventListener('submit', function(e) {
+            if (!selectedProduct) {
+                e.preventDefault();
+                alert('Por favor selecciona un producto.');
+                return false;
+            }
+            
+            const quantity = parseInt(quantityInput.value);
+            if (quantity > selectedProduct.stock) {
+                e.preventDefault();
+                alert(`No hay suficiente stock. Solo hay ${selectedProduct.stock} unidades disponibles.`);
+                return false;
+            }
+            
+            if (quantity <= 0) {
+                e.preventDefault();
+                alert('La cantidad debe ser mayor a 0.');
+                return false;
+            }
+            
+            // Confirmación final
+            const confirmation = confirm(
+                `¿Confirmar venta de ${quantity} unidad(es) de "${selectedProduct.name}" por un total de $${(selectedProduct.price * quantity).toFixed(2)}?`
+            );
+            
+            if (!confirmation) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Mostrar mensaje de carga
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            submitBtn.disabled = true;
+        });
+        
+        // Efecto de scroll en la barra de navegación
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+            } else {
+                navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            }
+        });
+        
+        // Inicializar valores
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCalculation();
+            
+            // Seleccionar el primer producto por defecto si hay productos
+            if (productSelect.options.length > 1) {
+                productSelect.selectedIndex = 1;
+                productSelect.dispatchEvent(new Event('change'));
+            }
+            
+            // Resaltar productos con stock bajo o sin stock
+            const productOptions = document.querySelectorAll('#productSelect option');
+            productOptions.forEach(option => {
+                if (option.value) {
+                    const stock = parseInt(option.dataset.stock);
+                    if (stock <= 5 && stock > 0) {
+                        option.style.color = '#d35400';
+                        option.innerHTML = option.text + ' ⚠';
+                    } else if (stock === 0) {
+                        option.style.color = '#e74c3c';
+                        option.innerHTML = option.text + ' ❌';
+                        option.disabled = true;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

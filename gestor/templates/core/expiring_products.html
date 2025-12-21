@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos por Vencer - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px; /* Para compensar la barra fija */
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        /* ENCABEZADO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* BOTONES */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+        
+        /* ALERTAS DE VENCIMIENTO */
+        .alert-banner {
+            background-color: #fff8e1;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 8px solid #f39c12;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .alert-title {
+            font-size: 1.5rem;
+            color: #d35400;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert-title i {
+            color: #f39c12;
+        }
+        
+        .alert-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .stat-critical {
+            color: #e74c3c;
+        }
+        
+        .stat-warning {
+            color: #f39c12;
+        }
+        
+        .stat-info {
+            color: #3498db;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* TABLA DE PRODUCTOS */
+        .products-table-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .table-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .table-title i {
+            color: #3498db;
+        }
+        
+        .table-info {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        
+        .products-table th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .products-table th i {
+            margin-right: 8px;
+        }
+        
+        .products-table td {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .products-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* BADGES DE URGENCIA */
+        .urgency-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .urgency-critical {
+            background-color: #fadbd8;
+            color: #c0392b;
+            border: 1px solid #f5b7b1;
+        }
+        
+        .urgency-high {
+            background-color: #fdebd0;
+            color: #d35400;
+            border: 1px solid #f8c471;
+        }
+        
+        .urgency-medium {
+            background-color: #fff8e1;
+            color: #f39c12;
+            border: 1px solid #f7dc6f;
+        }
+        
+        .urgency-low {
+            background-color: #e8f4fc;
+            color: #2980b9;
+            border: 1px solid #aed6f1;
+        }
+        
+        /* BADGE DE ESTADO GENERAL */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .status-expired {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .status-low-stock {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        /* ACCIONES EN TABLA */
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* INDICADOR DE DÍAS */
+        .days-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .days-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        .days-critical {
+            background-color: #e74c3c;
+        }
+        
+        .days-warning {
+            background-color: #f39c12;
+        }
+        
+        .days-normal {
+            background-color: #27ae60;
+        }
+        
+        /* FILTROS */
+        .filters-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .filters-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filters-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filters-title i {
+            color: #3498db;
+        }
+        
+        .filters-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        /* MENSAJE SIN PRODUCTOS */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 5rem;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+        
+        .empty-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .empty-message {
+            color: #7f8c8d;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        
+        /* INFORMACIÓN ADICIONAL */
+        .info-section {
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .info-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .alert-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filters-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .products-table-container {
+                padding: 15px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .alert-stats {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stat-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .days-indicator {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products/new/" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reporte Mensual</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear código</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-hourglass-half"></i>
+                    Productos Próximos a Vencer
+                </h1>
+                
+                <div class="header-actions">
+                    <a href="/products/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver a Productos
+                    </a>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i>
+                        Ir al Inicio
+                    </a>
+                </div>
+            </div>
+            
+            <!-- ALERTA DE VENCIMIENTO -->
+            <div class="alert-banner">
+                <div class="alert-header">
+                    <h2 class="alert-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Alerta: Productos con fecha de vencimiento próxima
+                    </h2>
+                    
+                    <div class="alert-stats">
+                        <div class="stat-item">
+                            <div class="stat-number stat-critical" id="criticalCount">0</div>
+                            <div class="stat-label">Críticos (< 3 días)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number stat-warning" id="warningCount">0</div>
+                            <div class="stat-label">Urgentes (3-7 días)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number stat-info" id="normalCount">0</div>
+                            <div class="stat-label">Próximos (8-10 días)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" style="color: #2c3e50;" id="totalCount">0</div>
+                            <div class="stat-label">Total productos</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="color: #7f8c8d; margin-bottom: 15px;">
+                    <i class="fas fa-info-circle"></i>
+                    Se muestran los productos que vencen en los próximos 10 días. Revise y tome acción para evitar pérdidas.
+                </p>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-warning" onclick="printReport()">
+                        <i class="fas fa-print"></i>
+                        Imprimir Reporte
+                    </button>
+                    <button class="btn btn-danger" onclick="alert('Función de descarga disponible próximamente')">
+                        <i class="fas fa-file-excel"></i>
+                        Exportar a Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="sendAlerts()">
+                        <i class="fas fa-bell"></i>
+                        Notificar al Equipo
+                    </button>
+                </div>
+            </div>
+            
+            <!-- FILTROS -->
+            <div class="filters-panel">
+                <div class="filters-header">
+                    <h2 class="filters-title">
+                        <i class="fas fa-filter"></i>
+                        Filtrar Productos
+                    </h2>
+                </div>
+                
+                <form method="GET" class="filters-form" id="filterForm">
+                    <div class="form-group">
+                        <label class="form-label">Urgencia</label>
+                        <select name="urgency" class="form-control" id="urgencyFilter">
+                            <option value="all">Todas las urgencias</option>
+                            <option value="critical">Crítico (< 3 días)</option>
+                            <option value="warning">Urgente (3-7 días)</option>
+                            <option value="normal">Próximo (8-10 días)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select name="category" class="form-control" id="categoryFilter">
+                            <option value="all">Todas las categorías</option>
+                            <option value="lacteos">Lácteos</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="snacks">Snacks</option>
+                            <option value="dulces">Dulces</option>
+                            <option value="panaderia">Panadería</option>
+                            <option value="limpieza">Limpieza</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Stock mínimo</label>
+                        <input type="number" 
+                               name="min_stock" 
+                               class="form-control" 
+                               placeholder="Ej: 10"
+                               min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; height: 46px;">
+                            <i class="fas fa-filter"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- TABLA DE PRODUCTOS -->
+            <div class="products-table-container">
+                <div class="table-header">
+                    <h2 class="table-title">
+                        <i class="fas fa-list"></i>
+                        Productos Próximos a Vencer
+                    </h2>
+                    
+                    <div class="table-info">
+                        {% if products %}
+                            Mostrando <strong>{{ products|length }}</strong> productos
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if products %}
+                    <div style="overflow-x: auto;">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-tag"></i> Producto</th>
+                                    <th><i class="fas fa-boxes"></i> Stock</th>
+                                    <th><i class="fas fa-calendar-alt"></i> Vencimiento</th>
+                                    <th><i class="fas fa-clock"></i> Días restantes</th>
+                                    <th><i class="fas fa-exclamation"></i> Urgencia</th>
+                                    <th><i class="fas fa-folder"></i> Categoría</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                    <th><i class="fas fa-cog"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ product.name }}</strong>
+                                        {% if product.barcode %}
+                                        <br>
+                                        <small style="color: #7f8c8d; font-size: 0.85rem;">
+                                            <i class="fas fa-barcode"></i> {{ product.barcode }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span>{{ product.stock }}</span>
+                                            {% if product.stock <= 5 %}
+                                                <span class="status-badge status-low-stock">Bajo stock</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ product.expiration_date }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="days-indicator">
+                                            <div class="days-circle" id="daysCircle{{ forloop.counter }}">
+                                                <!-- Se llena con JavaScript -->
+                                            </div>
+                                            <span id="daysText{{ forloop.counter }}">calculando...</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="urgency-badge" id="urgencyBadge{{ forloop.counter }}">
+                                            <!-- Se llena con JavaScript -->
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if product.category %}
+                                            {{ product.category }}
+                                        {% else %}
+                                            <span style="color: #7f8c8d;">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>${{ product.price|floatformat:2 }}</strong>
+                                        <br>
+                                        <small style="color: #7f8c8d; font-size: 0.85rem;">
+                                            Total: $<span id="totalValue{{ forloop.counter }}">{{ product.total_value|floatformat:2|default:"0.00" }}</span>
+                                        </small>
+                                    </td>
+                                    <td class="actions-cell">
+                                        <a href="{% url 'edit_product' product.id %}" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <button class="btn btn-warning btn-sm" onclick="promoteProduct('{{ product.id }}', '{{ product.name }}')">
+                                            <i class="fas fa-bullhorn"></i> Promocionar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- RESUMEN FINANCIERO -->
+                    <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-calculator"></i>
+                            Resumen Financiero
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div>
+                                <div style="font-size: 0.9rem; color: #7f8c8d;">Valor total en riesgo</div>
+                                <div style="font-size: 1.8rem; font-weight: 700; color: #e74c3c;" id="totalRiskValue">$0.00</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: #7f8c8d;">Productos con bajo stock</div>
+                                <div style="font-size: 1.8rem; font-weight: 700; color: #f39c12;" id="lowStockCount">0</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: #7f8c8d;">Fecha más cercana</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #2c3e50;" id="closestDate">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <!-- MENSAJE SI NO HAY PRODUCTOS -->
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="empty-title">¡Excelente noticia!</h3>
+                        <p class="empty-message">
+                            No hay productos próximos a vencer en los próximos 10 días. 
+                            El inventario está bien gestionado y no hay riesgo de pérdidas por vencimiento.
+                        </p>
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                            <a href="/products/" class="btn btn-primary">
+                                <i class="fas fa-boxes"></i>
+                                Ver todos los productos
+                            </a>
+                            <a href="/report/month/" class="btn btn-secondary">
+                                <i class="fas fa-chart-bar"></i>
+                                Ver reportes
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- INFORMACIÓN Y RECOMENDACIONES -->
+            <div class="info-section">
+                <h3 class="info-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Recomendaciones para productos próximos a vencer
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-percentage" style="color: #27ae60;"></i>
+                            Crear promociones
+                        </h4>
+                        <p style="color: #555; font-size: 0.9rem;">
+                            Ofrezca descuentos para mover el inventario rápidamente.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-gift" style="color: #9b59b6;"></i>
+                            Paquetes combinados
+                        </h4>
+                        <p style="color: #555; font-size: 0.9rem;">
+                            Incluya productos próximos a vencer en paquetes con otros productos.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-store" style="color: #f39c12;"></i>
+                            Destacar en tienda
+                        </h4>
+                        <p style="color: #555; font-size: 0.9rem;">
+                            Coloque estos productos en áreas visibles del kiosco.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-users" style="color: #3498db;"></i>
+                            Capacitar al equipo
+                        </h4>
+                        <p style="color: #555; font-size: 0.9rem;">
+                            Informe al personal para que prioricen la venta de estos productos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2023 | Control de Vencimientos</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-clock"></i>
+                Última verificación: {% now "d/m/Y H:i" %}
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Calcular días hasta vencimiento y clasificar productos
+        document.addEventListener('DOMContentLoaded', function() {
+            const products = {{ products|safe|default:"[]" }};
+            let criticalCount = 0;
+            let warningCount = 0;
+            let normalCount = 0;
+            let totalRiskValue = 0;
+            let lowStockCount = 0;
+            let closestDate = null;
+            
+            // Si hay productos en el template Django
+            const productRows = document.querySelectorAll('.products-table tbody tr');
+            
+            productRows.forEach((row, index) => {
+                const expirationDateStr = row.querySelector('td:nth-child(3) strong')?.textContent;
+                const stock = parseInt(row.querySelector('td:nth-child(2) span')?.textContent || 0);
+                const price = parseFloat(row.querySelector('td:nth-child(7) strong')?.textContent?.replace('$', '') || 0);
+                
+                if (expirationDateStr) {
+                    const today = new Date();
+                    const expirationDate = new Date(expirationDateStr);
+                    const timeDiff = expirationDate.getTime() - today.getTime();
+                    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                    
+                    // Actualizar contadores
+                    if (daysDiff < 3) {
+                        criticalCount++;
+                    } else if (daysDiff <= 7) {
+                        warningCount++;
+                    } else if (daysDiff <= 10) {
+                        normalCount++;
+                    }
+                    
+                    // Calcular valor total
+                    const totalValue = price * stock;
+                    totalRiskValue += totalValue;
+                    
+                    // Contar productos con bajo stock
+                    if (stock <= 5) {
+                        lowStockCount++;
+                    }
+                    
+                    // Encontrar fecha más cercana
+                    if (!closestDate || daysDiff < closestDate.days) {
+                        closestDate = { date: expirationDateStr, days: daysDiff };
+                    }
+                    
+                    // Actualizar interfaz
+                    const daysCircle = document.getElementById(`daysCircle${index + 1}`);
+                    const daysText = document.getElementById(`daysText${index + 1}`);
+                    const urgencyBadge = document.getElementById(`urgencyBadge${index + 1}`);
+                    const totalValueSpan = document.getElementById(`totalValue${index + 1}`);
+                    
+                    if (daysCircle && daysText && urgencyBadge) {
+                        // Actualizar círculo de días
+                        daysCircle.textContent = daysDiff;
+                        
+                        if (daysDiff < 0) {
+                            daysCircle.className = 'days-circle days-critical';
+                            daysCircle.textContent = 'Venc';
+                            daysText.textContent = 'Vencido';
+                            urgencyBadge.className = 'urgency-badge urgency-critical';
+                            urgencyBadge.textContent = 'VENCIDO';
+                        } else if (daysDiff < 3) {
+                            daysCircle.className = 'days-circle days-critical';
+                            daysText.textContent = daysDiff === 1 ? '1 día' : `${daysDiff} días`;
+                            urgencyBadge.className = 'urgency-badge urgency-critical';
+                            urgencyBadge.textContent = 'CRÍTICO';
+                        } else if (daysDiff <= 7) {
+                            daysCircle.className = 'days-circle days-warning';
+                            daysText.textContent = `${daysDiff} días`;
+                            urgencyBadge.className = 'urgency-badge urgency-high';
+                            urgencyBadge.textContent = 'ALTO';
+                        } else if (daysDiff <= 10) {
+                            daysCircle.className = 'days-circle days-normal';
+                            daysText.textContent = `${daysDiff} días`;
+                            urgencyBadge.className = 'urgency-badge urgency-medium';
+                            urgencyBadge.textContent = 'MEDIO';
+                        } else {
+                            daysCircle.className = 'days-circle days-normal';
+                            daysText.textContent = `${daysDiff} días`;
+                            urgencyBadge.className = 'urgency-badge urgency-low';
+                            urgencyBadge.textContent = 'BAJO';
+                        }
+                    }
+                    
+                    // Actualizar valor total del producto
+                    if (totalValueSpan) {
+                        totalValueSpan.textContent = totalValue.toFixed(2);
+                    }
+                }
+            });
+            
+            // Actualizar estadísticas
+            document.getElementById('criticalCount').textContent = criticalCount;
+            document.getElementById('warningCount').textContent = warningCount;
+            document.getElementById('normalCount').textContent = normalCount;
+            document.getElementById('totalCount').textContent = productRows.length;
+            document.getElementById('totalRiskValue').textContent = '$' + totalRiskValue.toFixed(2);
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            
+            if (closestDate) {
+                document.getElementById('closestDate').textContent = closestDate.date;
+            }
+            
+            // Aplicar filtros desde URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const urgencyFilter = document.getElementById('urgencyFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            
+            if (urlParams.get('urgency') && urgencyFilter) {
+                urgencyFilter.value = urlParams.get('urgency');
+            }
+            
+            if (urlParams.get('category') && categoryFilter) {
+                categoryFilter.value = urlParams.get('category');
+            }
+            
+            // Efecto de scroll en la barra de navegación
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+                } else {
+                    navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }
+            });
+        });
+        
+        // Funciones de utilidad
+        function printReport() {
+            window.print();
+        }
+        
+        function sendAlerts() {
+            const criticalCount = parseInt(document.getElementById('criticalCount').textContent);
+            
+            if (criticalCount > 0) {
+                alert(`⚠️ ALERTA ENVIADA AL EQUIPO\n\nSe han detectado ${criticalCount} productos en estado CRÍTICO (vencen en menos de 3 días).\n\nEl equipo de ventas ha sido notificado para priorizar estos productos.`);
+            } else {
+                alert('✅ Información enviada al equipo\n\nNo hay productos en estado crítico. Se ha notificado al equipo sobre los productos próximos a vencer.');
+            }
+        }
+        
+        function promoteProduct(productId, productName) {
+            const discount = prompt(`¿Qué porcentaje de descuento desea aplicar para promocionar "${productName}"? (Ej: 20 para 20%)`, "15");
+            
+            if (discount !== null && discount !== "") {
+                const discountNum = parseInt(discount);
+                if (!isNaN(discountNum) && discountNum > 0 && discountNum <= 100) {
+                    alert(`✅ Promoción creada\n\nProducto: ${productName}\nDescuento: ${discountNum}%\n\nLa promoción estará activa durante 3 días.`);
+                    
+                    // Aquí iría la lógica para guardar la promoción en el backend
+                    // fetch(`/api/products/${productId}/promote/`, {
+                    //     method: 'POST',
+                    //     headers: {'Content-Type': 'application/json'},
+                    //     body: JSON.stringify({discount: discountNum})
+                    // })
+                    // .then(response => response.json())
+                    // .then(data => {
+                    //     alert('Promoción creada exitosamente');
+                    // });
+                } else {
+                    alert('Por favor ingrese un porcentaje válido entre 1 y 100');
+                }
+            }
+        }
+        
+        // Filtrado en tiempo real (si se implementa con JavaScript)
+        document.getElementById('urgencyFilter')?.addEventListener('change', function() {
+            const filterForm = document.getElementById('filterForm');
+            filterForm.submit();
+        });
+        
+        document.getElementById('categoryFilter')?.addEventListener('change', function() {
+            const filterForm = document.getElementById('filterForm');
+            filterForm.submit();
+        });
+    </script>
+</body>
+</html>

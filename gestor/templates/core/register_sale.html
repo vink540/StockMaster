@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Venta - Sistema de Gestión del Almacén</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* BARRA DE NAVEGACIÓN FIJA */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 0;
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 20px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        /* ENCABEZADO DE PÁGINA */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            color: #3498db;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* MENSAJES DE ALERTA */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+        }
+        
+        /* INFORMACIÓN DE VENTA EN CURSO */
+        .current-sale-info {
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .current-sale-info h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .current-sale-info p {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .current-sale-info strong {
+            color: #2c3e50;
+            min-width: 120px;
+        }
+        
+        /* FORMULARIO DE VENTA */
+        .sale-form-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+        
+        .form-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-header h2 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-header h2 i {
+            color: #3498db;
+        }
+        
+        /* FORMULARIO */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            color: #3498db;
+            width: 20px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        /* INFORMACIÓN DEL PRODUCTO */
+        .product-info-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+        
+        .product-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .product-detail {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-detail label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+        
+        .product-detail span {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        /* CARRITO DE VENTA */
+        .cart-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .cart-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cart-title i {
+            color: #3498db;
+        }
+        
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .cart-table th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+        }
+        
+        .cart-table th i {
+            margin-right: 8px;
+        }
+        
+        .cart-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .cart-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .cart-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .cart-total {
+            text-align: right;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+        
+        /* BOTONES */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .badge-warning {
+            background-color: #fdebd0;
+            color: #d35400;
+        }
+        
+        .badge-danger {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        
+        /* PRODUCTOS RÁPIDOS */
+        .quick-products {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .quick-products h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .products-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .product-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .product-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .product-card-name {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        /* PIE DE PÁGINA */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 50px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                background-color: #2c3e50;
+                flex-direction: column;
+                transition: left 0.3s ease;
+                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-item {
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 18px 25px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .sale-form-container, .cart-container {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .cart-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .cart-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+            
+            .product-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- BARRA DE NAVEGACIÓN FIJA -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-warehouse"></i>
+                <h1>Sistema de Gestión del Almacén</h1>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/products/" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products/new/" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/register/" class="nav-link active">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Registrar Venta</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sales/" class="nav-link">
+                        <i class="fas fa-history"></i>
+                        <span>Historial</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/report/month/" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/scan/" class="nav-link">
+                        <i class="fas fa-barcode"></i>
+                        <span>Escanear</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container">
+        <div class="main-content">
+            <!-- ENCABEZADO DE PÁGINA -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-cash-register"></i>
+                    Registrar Venta
+                </h1>
+                
+                <a href="/" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al Inicio
+                </a>
+            </div>
+            
+            <!-- MENSAJES DE ALERTA -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas 
+                            {% if message.tags == 'success' %}fa-check-circle{% endif %}
+                            {% if message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle{% endif %}
+                            {% if message.tags == 'warning' %}fa-exclamation-triangle{% endif %}
+                            {% if message.tags == 'info' %}fa-info-circle{% endif %}
+                        "></i>
+                        {{ message|safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if error %}
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Error:</strong> {{ error }}
+                </div>
+            {% endif %}
+            
+            <!-- INFORMACIÓN DE VENTA EN CURSO -->
+            <div class="current-sale-info">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Información de la venta
+                </h3>
+                <p>
+                    <i class="fas fa-calendar-alt"></i>
+                    <strong>Fecha:</strong> 
+                    <span id="current-date">{% now "d/m/Y" %}</span>
+                </p>
+                <p>
+                    <i class="fas fa-clock"></i>
+                    <strong>Hora:</strong> 
+                    <span id="current-time">{% now "H:i" %}</span>
+                </p>
+                <p>
+                    <i class="fas fa-user"></i>
+                    <strong>Vendedor:</strong> 
+                    <span>{{ user.username|default:"Usuario Actual" }}</span>
+                </p>
+            </div>
+            
+            <!-- FORMULARIO DE VENTA PRINCIPAL -->
+            <div class="sale-form-container">
+                <div class="form-header">
+                    <h2><i class="fas fa-cart-plus"></i> Agregar producto a la venta</h2>
+                </div>
+                
+                <form method="POST" id="saleForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label required-field">
+                                    <i class="fas fa-box"></i>
+                                    Producto
+                                </label>
+                                <select name="product" class="form-control" id="productSelect" required>
+                                    <option value="">-- Seleccione un producto --</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" 
+                                            data-price="{{ product.price }}"
+                                            data-stock="{{ product.stock }}"
+                                            data-name="{{ product.name }}"
+                                            data-barcode="{{ product.barcode|default:'' }}"
+                                            data-category="{{ product.category|default:'Sin categoría' }}">
+                                        {{ product.name }} (Stock: {{ product.stock }}) - ${{ product.price }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <span class="form-hint">Seleccione el producto a vender</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label required-field">
+                                    <i class="fas fa-hashtag"></i>
+                                    Cantidad
+                                </label>
+                                <input type="number" 
+                                       name="quantity" 
+                                       id="quantityInput"
+                                       class="form-control" 
+                                       placeholder="0" 
+                                       min="1"
+                                       value="1"
+                                       required>
+                                <span class="form-hint">Ingrese la cantidad a vender</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- INFORMACIÓN DEL CLIENTE Y VENDEDOR -->
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Cliente (Opcional)
+                                </label>
+                                <input type="text" 
+                                       name="customer" 
+                                       id="customerInput"
+                                       class="form-control" 
+                                       placeholder="Nombre del cliente">
+                                <span class="form-hint">Ingrese el nombre del cliente</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tie"></i>
+                                    Atendido por (Opcional)
+                                </label>
+                                <input type="text" 
+                                       name="attendant" 
+                                       id="attendantInput"
+                                       class="form-control" 
+                                       placeholder="Nombre del vendedor"
+                                       value="{{ user.username|default:'' }}">
+                                <span class="form-hint">Persona que atiende la venta</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- INFORMACIÓN DEL PRODUCTO SELECCIONADO -->
+                    <div id="productInfo" class="product-info-box">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0; color: #2c3e50;" id="selectedProductName"></h4>
+                            <span class="badge" id="stockBadge">Stock: 0</span>
+                        </div>
+                        
+                        <div class="product-details">
+                            <div class="product-detail">
+                                <label>Precio unitario:</label>
+                                <span id="productPrice">$0.00</span>
+                            </div>
+                            <div class="product-detail">
+                                <label>Disponible:</label>
+                                <span id="availableStock">0 unidades</span>
+                            </div>
+                            <div class="product-detail">
+                                <label>Categoría:</label>
+                                <span id="productCategory">-</span>
+                            </div>
+                            <div class="product-detail">
+                                <label>Código:</label>
+                                <span id="productBarcode">-</span>
+                            </div>
+                        </div>
+                        
+                        <!-- RESUMEN DE LA VENTA -->
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd;">
+                            <p style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                Resumen de la venta:
+                            </p>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Precio unitario:</span>
+                                <span id="unitPriceDisplay">$0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Cantidad:</span>
+                                <span id="quantityDisplay">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                <span style="font-weight: 600;">Total:</span>
+                                <span id="calculatedTotal" style="font-size: 1.3rem; font-weight: 700; color: #27ae60;">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOTONES DE ACCIÓN -->
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i>
+                            Limpiar
+                        </button>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i>
+                            Registrar Venta
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- CARRITO DE VENTA (si hay items en sesión) -->
+            {% if request.session.sale_items %}
+            <div class="cart-container">
+                <div class="cart-header">
+                    <h2 class="cart-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        Carrito de Venta
+                    </h2>
+                    
+                    <div>
+                        <a href="{% url 'clear_sale' %}" class="btn btn-danger" 
+                           onclick="return confirm('¿Está seguro de vaciar el carrito?');">
+                            <i class="fas fa-trash"></i>
+                            Vaciar Carrito
+                        </a>
+                    </div>
+                </div>
+                
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-box"></i> Producto</th>
+                            <th><i class="fas fa-hashtag"></i> Cantidad</th>
+                            <th><i class="fas fa-dollar-sign"></i> Precio Unit.</th>
+                            <th><i class="fas fa-calculator"></i> Subtotal</th>
+                            <th><i class="fas fa-cog"></i> Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in request.session.sale_items %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.product_name }}</strong>
+                                {% if item.barcode %}
+                                <br>
+                                <small style="color: #7f8c8d;">
+                                    <i class="fas fa-barcode"></i> {{ item.barcode }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.price|floatformat:2 }}</td>
+                            <td>${{ item.subtotal|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'remove_from_sale' item.product_id %}" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('¿Eliminar este producto del carrito?');">
+                                    <i class="fas fa-trash"></i>
+                                    Eliminar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="cart-total">
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-weight: 600;">Subtotal:</span>
+                        <span>${{ request.session.sale_subtotal|floatformat:2|default:"0.00" }}</span>
+                    </div>
+                    
+                    {% if request.session.sale_tax %}
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-weight: 600;">IVA ({{ request.session.tax_rate|default:"21" }}%):</span>
+                        <span>${{ request.session.sale_tax|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="total-amount">
+                        <span style="margin-right: 10px;">TOTAL:</span>
+                        <span>${{ request.session.sale_total|floatformat:2|default:"0.00" }}</span>
+                    </div>
+                </div>
+                
+                <!-- BOTONES FINALIZAR VENTA -->
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px;">
+                    <a href="{% url 'cancel_sale' %}" class="btn btn-warning"
+                       onclick="return confirm('¿Cancelar toda la venta?');">
+                        <i class="fas fa-times"></i>
+                        Cancelar Venta
+                    </a>
+                    
+                    <a href="{% url 'complete_sale' %}" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i>
+                        Finalizar Venta
+                    </a>
+                </div>
+            </div>
+            
+            {% else %}
+            <!-- MENSAJE SI EL CARRITO ESTÁ VACÍO -->
+            <div class="cart-container" style="text-align: center;">
+                <div style="font-size: 4rem; color: #bdc3c7; margin-bottom: 20px;">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3 style="color: #7f8c8d; margin-bottom: 15px;">Carrito vacío</h3>
+                <p style="color: #95a5a6;">
+                    Agregue productos usando el formulario superior para comenzar una venta
+                </p>
+            </div>
+            {% endif %}
+            
+            <!-- PRODUCTOS RÁPIDOS -->
+            {% if products %}
+            <div class="quick-products">
+                <h3>
+                    <i class="fas fa-bolt"></i>
+                    Productos más vendidos
+                </h3>
+                <div class="products-grid">
+                    {% for product in products|slice:":6" %}
+                    <div class="product-card">
+                        <div class="product-card-header">
+                            <h4 class="product-card-name">{{ product.name }}</h4>
+                            {% if product.stock <= 5 %}
+                            <span class="badge badge-warning">Bajo stock</span>
+                            {% elif product.stock == 0 %}
+                            <span class="badge badge-danger">Agotado</span>
+                            {% endif %}
+                        </div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 5px;">
+                            Stock: {{ product.stock }} unidades
+                        </div>
+                        <div style="font-weight: 600; color: #27ae60; margin-bottom: 10px;">
+                            ${{ product.price|floatformat:2 }}
+                        </div>
+                        <button type="button" 
+                                class="btn btn-primary"
+                                style="width: 100%;"
+                                onclick="addToCartQuick('{{ product.id }}')">
+                            <i class="fas fa-cart-plus"></i>
+                            Agregar rápido
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <!-- PIE DE PÁGINA -->
+    <footer class="container">
+        <div class="footer">
+            <p>Sistema de Gestión del Almacén &copy; 2024 | Registro de Ventas</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-shopping-cart"></i>
+                Ventas del día: {{ today_sales|default:"0" }}
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle del menú móvil
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileToggle.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    navMenu.classList.remove('active');
+                    mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+        
+        // Actualizar hora en tiempo real
+        function updateDateTime() {
+            const now = new Date();
+            const dateElement = document.getElementById('current-date');
+            const timeElement = document.getElementById('current-time');
+            
+            if (dateElement) {
+                const dateStr = now.toLocaleDateString('es-ES');
+                dateElement.textContent = dateStr;
+            }
+            
+            if (timeElement) {
+                const timeStr = now.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+                timeElement.textContent = timeStr;
+            }
+        }
+        
+        // Actualizar cada minuto
+        setInterval(updateDateTime, 60000);
+        updateDateTime(); // Ejecutar inmediatamente
+        
+        // Elementos del DOM
+        const productSelect = document.getElementById('productSelect');
+        const quantityInput = document.getElementById('quantityInput');
+        const customerInput = document.getElementById('customerInput');
+        const attendantInput = document.getElementById('attendantInput');
+        const productInfo = document.getElementById('productInfo');
+        const selectedProductName = document.getElementById('selectedProductName');
+        const stockBadge = document.getElementById('stockBadge');
+        const productPrice = document.getElementById('productPrice');
+        const unitPriceDisplay = document.getElementById('unitPriceDisplay');
+        const availableStock = document.getElementById('availableStock');
+        const productCategory = document.getElementById('productCategory');
+        const productBarcode = document.getElementById('productBarcode');
+        const quantityDisplay = document.getElementById('quantityDisplay');
+        const calculatedTotal = document.getElementById('calculatedTotal');
+        
+        // Función para actualizar información del producto
+        function updateProductInfo() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            
+            if (selectedOption.value === "") {
+                productInfo.style.display = 'none';
+                return;
+            }
+            
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            const price = parseFloat(selectedOption.getAttribute('data-price'));
+            const name = selectedOption.getAttribute('data-name');
+            const barcode = selectedOption.getAttribute('data-barcode');
+            const category = selectedOption.getAttribute('data-category');
+            const quantity = parseInt(quantityInput.value) || 1;
+            
+            // Validar cantidad
+            if (quantity > stock) {
+                alert(`⚠️ Stock insuficiente. Máximo disponible: ${stock} unidades`);
+                quantityInput.value = stock;
+                return updateProductInfo();
+            }
+            
+            if (quantity < 1) {
+                quantityInput.value = 1;
+                return updateProductInfo();
+            }
+            
+            // Calcular total
+            const total = price * quantity;
+            
+            // Actualizar información del producto
+            selectedProductName.textContent = name;
+            productPrice.textContent = '$' + price.toFixed(2);
+            unitPriceDisplay.textContent = '$' + price.toFixed(2);
+            availableStock.textContent = stock + ' unidades';
+            productCategory.textContent = category;
+            productBarcode.textContent = barcode || '-';
+            quantityDisplay.textContent = quantity;
+            calculatedTotal.textContent = '$' + total.toFixed(2);
+            
+            // Actualizar badge de stock
+            if (stock <= 5) {
+                stockBadge.className = 'badge badge-warning';
+                stockBadge.textContent = 'Stock bajo: ' + stock;
+            } else if (stock <= 0) {
+                stockBadge.className = 'badge badge-danger';
+                stockBadge.textContent = 'Sin stock';
+            } else {
+                stockBadge.className = 'badge badge-success';
+                stockBadge.textContent = 'Stock: ' + stock;
+            }
+            
+            // Mostrar información
+            productInfo.style.display = 'block';
+        }
+        
+        // Función para agregar producto rápido al carrito
+        function addToCartQuick(productId) {
+            // Buscar el producto en el select
+            for (let option of productSelect.options) {
+                if (option.value === productId) {
+                    productSelect.value = productId;
+                    quantityInput.value = 1;
+                    updateProductInfo();
+                    
+                    // Enviar formulario automáticamente después de un breve retraso
+                    setTimeout(() => {
+                        document.getElementById('saleForm').submit();
+                    }, 300);
+                    break;
+                }
+            }
+        }
+        
+        // Event listeners
+        productSelect.addEventListener('change', updateProductInfo);
+        quantityInput.addEventListener('input', updateProductInfo);
+        
+        // Validación del formulario
+        document.getElementById('saleForm')?.addEventListener('submit', function(event) {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const quantity = parseInt(quantityInput.value);
+            
+            if (selectedOption.value === "") {
+                alert('❌ Por favor seleccione un producto');
+                event.preventDefault();
+                return;
+            }
+            
+            if (!quantity || quantity < 1) {
+                alert('❌ La cantidad debe ser al menos 1');
+                event.preventDefault();
+                return;
+            }
+            
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            if (quantity > stock) {
+                alert(`❌ No hay suficiente stock. Solo hay ${stock} unidades disponibles.`);
+                event.preventDefault();
+                return;
+            }
+            
+            // Confirmación opcional
+            const confirmSale = confirm(`¿Confirmar venta de ${quantity} unidad(es) de "${selectedOption.getAttribute('data-name')}" por $${(selectedOption.getAttribute('data-price') * quantity).toFixed(2)}?`);
+            if (!confirmSale) {
+                event.preventDefault();
+            }
+        });
+        
+        // Efecto de scroll en la barra de navegación
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
+            } else {
+                navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            }
+        });
+        
+        // Inicializar información si hay un producto seleccionado
+        document.addEventListener('DOMContentLoaded', function() {
+            if (productSelect.value) {
+                updateProductInfo();
+            }
+        });
+    </script>
+</body>
+</html>
