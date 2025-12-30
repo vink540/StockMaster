@@ -405,6 +405,170 @@
             background-color: #2980b9;
         }
         
+        /* ESTILOS PARA EL MODAL DEL ESCÁNER */
+        .scanner-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .scanner-content {
+            background: #2c3e50;
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .scanner-title {
+            margin: 0;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .scanner-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .scanner-container {
+            width: 100%;
+            height: 300px;
+            background: black;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        #interactive {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #3498db;
+            pointer-events: none;
+        }
+        
+        .scanner-info {
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .scanner-status {
+            color: #bdc3c7;
+            margin-top: 5px;
+        }
+        
+        .scanner-result {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #2ecc71;
+            display: none;
+        }
+        
+        .scanner-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .scanner-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .scanner-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .scanner-btn:active {
+            transform: translateY(0);
+        }
+        
+        .scanner-btn:disabled {
+            background: #95a5a6 !important;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-camera {
+            background: #3498db;
+        }
+        
+        .btn-stop {
+            background: #e74c3c;
+        }
+        
+        .btn-random {
+            background: #9b59b6;
+        }
+        
+        .btn-use {
+            background: #27ae60;
+        }
+        
+        .btn-save {
+            background: #f39c12;
+        }
+        
+        .btn-cancel {
+            background: #7f8c8d;
+        }
+        
+        .scanner-footer {
+            display: flex;
+            gap: 10px;
+        }
+        
         /* PIE DE PÁGINA */
         .footer {
             text-align: center;
@@ -477,6 +641,20 @@
             .product-info strong {
                 min-width: auto;
             }
+            
+            .scanner-btn {
+                min-width: 120px;
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+            
+            .scanner-content {
+                padding: 15px;
+            }
+            
+            .scanner-container {
+                height: 250px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -487,6 +665,18 @@
             
             .form-col {
                 width: 100%;
+            }
+            
+            .scanner-btn {
+                min-width: 100%;
+            }
+            
+            .scanner-buttons {
+                flex-direction: column;
+            }
+            
+            .scanner-footer {
+                flex-direction: column;
             }
         }
     </style>
@@ -665,7 +855,7 @@
                         </div>
                     </div>
                     
-                    <!-- CAMPOS ADICIONALES (OPCIONALES PARA EXPANSIÓN FUTURA) -->
+                    <!-- CAMPOS ADICIONALES -->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-barcode"></i>
@@ -726,12 +916,12 @@
                         </div>
                         
                         <div style="display: flex; gap: 15px;">
-                            <button type="reset" class="btn btn-secondary">
+                            <button type="reset" class="btn btn-secondary" id="resetFormBtn">
                                 <i class="fas fa-undo"></i>
                                 Deshacer Cambios
                             </button>
                             
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="submitFormBtn">
                                 <i class="fas fa-save"></i>
                                 Guardar Cambios
                             </button>
@@ -801,6 +991,62 @@
         </div>
     </footer>
 
+    <!-- MODAL DEL ESCÁNER (oculto inicialmente) -->
+    <div id="scannerModal" class="scanner-modal" style="display: none;">
+        <div class="scanner-content">
+            <div class="scanner-header">
+                <h2 class="scanner-title">
+                    <i class="fas fa-barcode"></i>
+                    Escanear Código de Barras
+                </h2>
+                <button id="closeScanner" class="scanner-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="scanner-container">
+                <div id="interactive"></div>
+                <div class="scanner-overlay"></div>
+            </div>
+            
+            <div class="scanner-info">
+                <h3 style="margin: 0 0 10px 0; color: #ecf0f1; font-size: 16px;">
+                    <i class="fas fa-info-circle"></i> Estado:
+                </h3>
+                <div id="scannerStatus" class="scanner-status">
+                    Preparando escáner...
+                </div>
+                <div id="scannerResult" class="scanner-result">
+                    <i class="fas fa-check"></i> Código detectado: <span id="detectedCode"></span>
+                </div>
+            </div>
+            
+            <div class="scanner-buttons">
+                <button id="startCamera" class="scanner-btn btn-camera">
+                    <i class="fas fa-camera"></i> Activar Cámara
+                </button>
+                <button id="stopCamera" class="scanner-btn btn-stop" style="display: none;">
+                    <i class="fas fa-stop"></i> Detener Cámara
+                </button>
+                <button id="generateRandom" class="scanner-btn btn-random">
+                    <i class="fas fa-random"></i> Generar Aleatorio
+                </button>
+                <button id="useCode" class="scanner-btn btn-use" style="display: none;">
+                    <i class="fas fa-check-circle"></i> Usar Este Código
+                </button>
+            </div>
+            
+            <div class="scanner-footer">
+                <button id="saveAllChanges" class="scanner-btn btn-save" style="flex: 1;">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <button id="cancelScanner" class="scanner-btn btn-cancel" style="flex: 1;">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Toggle del menú móvil
         const mobileToggle = document.getElementById('mobileToggle');
@@ -822,28 +1068,31 @@
                 }
             });
         });
+
+        // ============================================
+        // GESTIÓN DEL FORMULARIO Y CAMBIOS SIN GUARDAR
+        // ============================================
+        let formChanged = false;
+        const originalFormData = new FormData();
+        let scannerActive = false;
         
-        // Simulación de escaneo de código de barras
-        document.getElementById('scanBarcodeBtn')?.addEventListener('click', function() {
-            const barcodeInput = document.querySelector('input[name="barcode"]');
-            const simulatedBarcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-            
-            barcodeInput.value = simulatedBarcode;
-            
-            // Mostrar notificación
-            const notification = document.createElement('div');
-            notification.className = 'alert alert-info';
-            notification.innerHTML = `<i class="fas fa-check-circle"></i> Código de barras escaneado: ${simulatedBarcode}`;
-            
-            // Insertar después del botón de escaneo
-            this.parentElement.parentElement.appendChild(notification);
-            
-            // Remover notificación después de 3 segundos
-            setTimeout(() => notification.remove(), 3000);
-        });
-        
-        // Validación del formulario
+        // Capturar estado original del formulario
         document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('editProductForm');
+            const formInputs = form.querySelectorAll('input, select, textarea');
+            
+            formInputs.forEach(input => {
+                originalFormData.set(input.name, input.value);
+                
+                input.addEventListener('input', () => {
+                    checkFormChanges();
+                });
+                
+                input.addEventListener('change', () => {
+                    checkFormChanges();
+                });
+            });
+            
             // Establecer fecha mínima como hoy para la fecha de vencimiento
             const today = new Date().toISOString().split('T')[0];
             const expirationField = document.querySelector('input[name="expiration_date"]');
@@ -851,61 +1100,6 @@
             if (expirationField) {
                 expirationField.min = today;
             }
-            
-            // Validación del formulario antes de enviar
-            const form = document.getElementById('editProductForm');
-            if (form) {
-                form.addEventListener('submit', function(event) {
-                    const nameField = document.querySelector('input[name="name"]');
-                    const priceField = document.querySelector('input[name="price"]');
-                    const stockField = document.querySelector('input[name="stock"]');
-                    
-                    let isValid = true;
-                    
-                    // Validar que el precio sea positivo
-                    if (parseFloat(priceField.value) <= 0) {
-                        alert('El precio debe ser mayor a 0');
-                        priceField.focus();
-                        isValid = false;
-                    }
-                    
-                    // Validar que el stock no sea negativo
-                    if (parseInt(stockField.value) < 0) {
-                        alert('El stock no puede ser negativo');
-                        stockField.focus();
-                        isValid = false;
-                    }
-                    
-                    // Validar fecha de vencimiento
-                    const expirationValue = expirationField.value;
-                    if (expirationValue && expirationValue < today) {
-                        alert('La fecha de vencimiento no puede ser anterior a hoy');
-                        expirationField.focus();
-                        isValid = false;
-                    }
-                    
-                    if (!isValid) {
-                        event.preventDefault();
-                    }
-                });
-            }
-            
-            // Confirmar antes de salir si hay cambios sin guardar
-            let formChanged = false;
-            const formInputs = document.querySelectorAll('#editProductForm input, #editProductForm select, #editProductForm textarea');
-            
-            formInputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    formChanged = true;
-                });
-            });
-            
-            window.addEventListener('beforeunload', (e) => {
-                if (formChanged) {
-                    e.preventDefault();
-                    e.returnValue = '';
-                }
-            });
             
             // Efecto de scroll en la barra de navegación
             window.addEventListener('scroll', () => {
@@ -916,6 +1110,426 @@
                     navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
                 }
             });
+        });
+        
+        function checkFormChanges() {
+            const form = document.getElementById('editProductForm');
+            const formInputs = form.querySelectorAll('input, select, textarea');
+            let hasChanges = false;
+            
+            for (const input of formInputs) {
+                const originalValue = originalFormData.get(input.name) || '';
+                if (input.value !== originalValue) {
+                    hasChanges = true;
+                    break;
+                }
+            }
+            
+            formChanged = hasChanges;
+            updateBeforeUnload();
+        }
+        
+        function updateBeforeUnload() {
+            if (formChanged) {
+                window.addEventListener('beforeunload', handleBeforeUnload);
+            } else {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+            }
+        }
+        
+        function handleBeforeUnload(e) {
+            if (formChanged && !scannerActive) {
+                e.preventDefault();
+                e.returnValue = 'Tienes cambios sin guardar. ¿Seguro que quieres salir?';
+                return 'Tienes cambios sin guardar. ¿Seguro que quieres salir?';
+            }
+        }
+        
+        // Limpiar el evento cuando se envía el formulario
+        document.getElementById('editProductForm')?.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitFormBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Validar formulario antes de enviar
+            if (!validateForm()) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Cambiar estado del botón
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            submitBtn.disabled = true;
+            
+            // Limpiar estado de cambios
+            formChanged = false;
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            
+            return true;
+        });
+        
+        // Cuando se hace clic en el botón de reset
+        document.getElementById('resetFormBtn')?.addEventListener('click', function() {
+            setTimeout(() => {
+                formChanged = false;
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+                
+                // Restaurar valores originales en nuestro registro
+                const form = document.getElementById('editProductForm');
+                const formInputs = form.querySelectorAll('input, select, textarea');
+                
+                formInputs.forEach(input => {
+                    originalFormData.set(input.name, input.value);
+                });
+            }, 100);
+        });
+        
+        function validateForm() {
+            const nameField = document.querySelector('input[name="name"]');
+            const priceField = document.querySelector('input[name="price"]');
+            const stockField = document.querySelector('input[name="stock"]');
+            const expirationField = document.querySelector('input[name="expiration_date"]');
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Validar que el precio sea positivo
+            if (parseFloat(priceField.value) <= 0) {
+                showNotification('El precio debe ser mayor a 0', 'error');
+                priceField.focus();
+                return false;
+            }
+            
+            // Validar que el stock no sea negativo
+            if (parseInt(stockField.value) < 0) {
+                showNotification('El stock no puede ser negativo', 'error');
+                stockField.focus();
+                return false;
+            }
+            
+            // Validar fecha de vencimiento
+            const expirationValue = expirationField.value;
+            if (expirationValue && expirationValue < today) {
+                showNotification('La fecha de vencimiento no puede ser anterior a hoy', 'error');
+                expirationField.focus();
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // ============================================
+        // SISTEMA DE ESCANER DE CÓDIGO DE BARRAS
+        // ============================================
+        document.getElementById('scanBarcodeBtn')?.addEventListener('click', openScannerModal);
+        
+        function openScannerModal() {
+            const scannerModal = document.getElementById('scannerModal');
+            scannerModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevenir scroll
+            
+            // Inicializar estado del escáner
+            document.getElementById('scannerStatus').textContent = 'Listo para escanear';
+            document.getElementById('scannerResult').style.display = 'none';
+            document.getElementById('startCamera').style.display = 'flex';
+            document.getElementById('stopCamera').style.display = 'none';
+            document.getElementById('useCode').style.display = 'none';
+        }
+        
+        function closeScannerModal() {
+            const scannerModal = document.getElementById('scannerModal');
+            scannerModal.style.display = 'none';
+            document.body.style.overflow = ''; // Restaurar scroll
+            
+            // Detener cámara si está activa
+            if (typeof Quagga !== 'undefined' && scannerActive) {
+                Quagga.stop();
+                scannerActive = false;
+            }
+        }
+        
+        // Event listeners para el modal del escáner
+        document.getElementById('closeScanner')?.addEventListener('click', closeScannerModal);
+        document.getElementById('cancelScanner')?.addEventListener('click', closeScannerModal);
+        
+        // Generar código aleatorio
+        document.getElementById('generateRandom')?.addEventListener('click', function() {
+            const randomBarcode = generateRandomBarcode();
+            showDetectedCode(randomBarcode);
+            
+            document.getElementById('scannerStatus').innerHTML = 
+                '<i class="fas fa-random"></i> Código aleatorio generado';
+        });
+        
+        // Usar código detectado
+        document.getElementById('useCode')?.addEventListener('click', function() {
+            const code = document.getElementById('detectedCode').textContent;
+            const barcodeInput = document.querySelector('input[name="barcode"]');
+            barcodeInput.value = code;
+            
+            // Marcar que el formulario tiene cambios
+            formChanged = true;
+            updateBeforeUnload();
+            
+            showNotification(`Código establecido: ${code}`, 'success');
+            
+            // Cerrar modal después de un momento
+            setTimeout(closeScannerModal, 1000);
+        });
+        
+        // Guardar todos los cambios
+        document.getElementById('saveAllChanges')?.addEventListener('click', function() {
+            // Detener cámara si está activa
+            if (scannerActive) {
+                Quagga.stop();
+                scannerActive = false;
+            }
+            
+            // Obtener código si hay uno detectado
+            const detectedCode = document.getElementById('detectedCode').textContent;
+            if (detectedCode) {
+                const barcodeInput = document.querySelector('input[name="barcode"]');
+                barcodeInput.value = detectedCode;
+            }
+            
+            // Validar y enviar formulario
+            if (validateForm()) {
+                const form = document.getElementById('editProductForm');
+                
+                // Limpiar estado de cambios pendientes
+                formChanged = false;
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+                
+                // Enviar formulario
+                form.submit();
+            }
+            
+            closeScannerModal();
+        });
+        
+        // Activar cámara
+        document.getElementById('startCamera')?.addEventListener('click', startBarcodeScanner);
+        
+        // Detener cámara
+        document.getElementById('stopCamera')?.addEventListener('click', function() {
+            if (scannerActive) {
+                Quagga.stop();
+                scannerActive = false;
+                document.getElementById('scannerStatus').innerHTML = 
+                    '<i class="fas fa-stop"></i> Cámara detenida';
+                document.getElementById('startCamera').style.display = 'flex';
+                document.getElementById('stopCamera').style.display = 'none';
+            }
+        });
+        
+        function generateRandomBarcode() {
+            // Generar EAN-13 (13 dígitos)
+            let barcode = '';
+            for (let i = 0; i < 12; i++) {
+                barcode += Math.floor(Math.random() * 10);
+            }
+            
+            // Calcular dígito de control para EAN-13
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                sum += parseInt(barcode[i]) * (i % 2 === 0 ? 1 : 3);
+            }
+            const checkDigit = (10 - (sum % 10)) % 10;
+            
+            return barcode + checkDigit;
+        }
+        
+        function showDetectedCode(code) {
+            document.getElementById('detectedCode').textContent = code;
+            document.getElementById('scannerResult').style.display = 'block';
+            document.getElementById('useCode').style.display = 'flex';
+        }
+        
+        function startBarcodeScanner() {
+            if (scannerActive) return;
+            
+            // Intentar cargar Quagga dinámicamente si no está disponible
+            if (typeof Quagga === 'undefined') {
+                loadQuaggaLibrary().then(() => {
+                    initializeQuaggaScanner();
+                }).catch(error => {
+                    document.getElementById('scannerStatus').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle"></i> Error al cargar la librería de escaneo`;
+                    console.error('Error loading Quagga:', error);
+                });
+            } else {
+                initializeQuaggaScanner();
+            }
+        }
+        
+        function loadQuaggaLibrary() {
+            return new Promise((resolve, reject) => {
+                // Verificar si ya está cargado
+                if (typeof Quagga !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                
+                // Cargar QuaggaJS dinámicamente
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        function initializeQuaggaScanner() {
+            document.getElementById('scannerStatus').innerHTML = 
+                '<i class="fas fa-spinner fa-spin"></i> Iniciando cámara...';
+            
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        facingMode: "environment",
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 }
+                    },
+                    area: {
+                        top: "25%",
+                        right: "10%",
+                        left: "10%",
+                        bottom: "25%"
+                    }
+                },
+                decoder: {
+                    readers: [
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_128_reader",
+                        "code_39_reader",
+                        "upc_reader",
+                        "upc_e_reader"
+                    ],
+                    multiple: false
+                },
+                locate: true,
+                frequency: 10
+            }, function(err) {
+                if (err) {
+                    console.error('Quagga initialization error:', err);
+                    document.getElementById('scannerStatus').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle"></i> Error: ${err.message || 'No se pudo acceder a la cámara'}`;
+                    
+                    // Intentar con restricciones más simples si falla
+                    if (err.name === 'ConstraintNotSatisfiedError' || err.name === 'OverconstrainedError') {
+                        setTimeout(() => {
+                            initializeSimpleQuaggaScanner();
+                        }, 1000);
+                    }
+                    return;
+                }
+                
+                Quagga.start();
+                scannerActive = true;
+                document.getElementById('scannerStatus').innerHTML = 
+                    '<i class="fas fa-camera"></i> Cámara activa - Apunte el código a la cámara';
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('stopCamera').style.display = 'flex';
+                
+                // Configurar para detectar códigos
+                Quagga.onDetected(function(result) {
+                    if (result && result.codeResult) {
+                        const code = result.codeResult.code;
+                        showDetectedCode(code);
+                        
+                        // Actualizar estado
+                        document.getElementById('scannerStatus').innerHTML = 
+                            `<i class="fas fa-check"></i> ¡Código detectado!`;
+                        
+                        // Opcional: vibrar si el dispositivo lo soporta
+                        if (navigator.vibrate) {
+                            navigator.vibrate(200);
+                        }
+                        
+                        // Opcional: Detener automáticamente después de detectar
+                        // Quagga.stop();
+                        // scannerActive = false;
+                        // document.getElementById('startCamera').style.display = 'flex';
+                        // document.getElementById('stopCamera').style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        function initializeSimpleQuaggaScanner() {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader", "code_128_reader"]
+                },
+                locate: false
+            }, function(err) {
+                if (err) {
+                    document.getElementById('scannerStatus').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle"></i> No se pudo acceder a la cámara. Asegúrese de permitir el acceso.`;
+                    return;
+                }
+                
+                Quagga.start();
+                scannerActive = true;
+                document.getElementById('scannerStatus').innerHTML = 
+                    '<i class="fas fa-camera"></i> Cámara activa';
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('stopCamera').style.display = 'flex';
+                
+                Quagga.onDetected(function(result) {
+                    if (result && result.codeResult) {
+                        const code = result.codeResult.code;
+                        showDetectedCode(code);
+                        document.getElementById('scannerStatus').innerHTML = 
+                            `<i class="fas fa-check"></i> ¡Código detectado!`;
+                    }
+                });
+            });
+        }
+        
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                                   type === 'error' ? 'exclamation-circle' : 
+                                   type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i> 
+                ${message}
+            `;
+            
+            // Insertar al inicio del contenedor principal
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.insertBefore(notification, mainContent.firstChild);
+                
+                // Remover después de 5 segundos
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Cerrar modal con Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const scannerModal = document.getElementById('scannerModal');
+                if (scannerModal.style.display === 'flex') {
+                    closeScannerModal();
+                }
+            }
         });
     </script>
 </body>
