@@ -6,24 +6,256 @@
     <title>Registro - Sistema de Gestión</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Usa los mismos estilos del login, puedes copiarlos */
-        /* ... mismos estilos que login.html ... */
+        /* RESET Y ESTILOS GENERALES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        .password-requirements {
-            margin-top: 5px;
-            font-size: 0.85rem;
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* CONTENEDOR DE LOGIN/REGISTRO */
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ENCABEZADO */
+        .login-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 35px 30px;
+            text-align: center;
+        }
+        
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .login-header h1 i {
+            color: #3498db;
+            font-size: 1.5rem;
+        }
+        
+        .login-header p {
+            color: #bdc3c7;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        /* CUERPO DEL FORMULARIO */
+        .login-body {
+            padding: 35px 30px;
+        }
+        
+        /* FORMULARIO */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            color: #3498db;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        /* CONTENEDOR DE CONTRASEÑA */
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
             color: #7f8c8d;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .password-toggle:hover {
+            color: #3498db;
+        }
+        
+        /* BOTÓN */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        /* PIE DE PÁGINA */
+        .login-footer {
+            margin-top: 25px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .login-footer p {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        .login-footer a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .login-footer a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        /* ALERTAS */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+        
+        .alert-error, .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .alert i {
+            font-size: 1.2rem;
+        }
+        
+        /* REQUISITOS DE CONTRASEÑA */
+        .password-requirements {
+            margin-top: 12px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .password-requirements p {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
         }
         
         .requirement {
             display: flex;
             align-items: center;
-            gap: 5px;
-            margin-bottom: 3px;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
         }
         
         .requirement i {
             font-size: 0.8rem;
+            width: 16px;
         }
         
         .valid {
@@ -32,6 +264,79 @@
         
         .invalid {
             color: #e74c3c;
+        }
+        
+        #password-match {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .login-container {
+                max-width: 100%;
+                border-radius: 15px;
+            }
+            
+            .login-header {
+                padding: 25px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .login-body {
+                padding: 25px 20px;
+            }
+            
+            .form-control {
+                padding: 14px 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-header h1 {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .login-header h1 i {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 14px;
+                font-size: 1rem;
+            }
+            
+            .password-requirements {
+                padding: 12px;
+            }
+        }
+        
+        /* ANIMACIÓN DE CARGA */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -60,7 +365,7 @@
                 {% endfor %}
             {% endif %}
             
-            <form method="POST">
+            <form method="POST" id="registerForm">
                 {% csrf_token %}
                 
                 <div class="form-group">
@@ -73,7 +378,12 @@
                            class="form-control" 
                            placeholder="Ingrese un nombre de usuario"
                            required
-                           autofocus>
+                           autofocus
+                           minlength="3"
+                           maxlength="30">
+                    <small style="color: #7f8c8d; font-size: 0.8rem; margin-top: 5px; display: block;">
+                        Solo letras, números y @/./+/-/_ 
+                    </small>
                 </div>
                 
                 <div class="form-group">
@@ -87,13 +397,14 @@
                                id="password1"
                                class="form-control" 
                                placeholder="Ingrese su contraseña"
-                               required>
+                               required
+                               minlength="8">
                         <button type="button" class="password-toggle" onclick="togglePassword('password1')">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                     <div class="password-requirements">
-                        <p style="margin-bottom: 8px;"><strong>La contraseña debe contener:</strong></p>
+                        <p>La contraseña debe contener:</p>
                         <div class="requirement" id="req-length">
                             <i class="fas fa-circle"></i>
                             <span>Al menos 8 caracteres</span>
@@ -105,6 +416,10 @@
                         <div class="requirement" id="req-number">
                             <i class="fas fa-circle"></i>
                             <span>Al menos un número</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <i class="fas fa-circle"></i>
+                            <span>Al menos un carácter especial (!@#$%^&*)</span>
                         </div>
                     </div>
                 </div>
@@ -120,7 +435,8 @@
                                id="password2"
                                class="form-control" 
                                placeholder="Repita su contraseña"
-                               required>
+                               required
+                               minlength="8">
                         <button type="button" class="password-toggle" onclick="togglePassword('password2')">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -130,7 +446,7 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="btn">
+                <button type="submit" class="btn" id="submitBtn">
                     <i class="fas fa-user-plus"></i>
                     Registrarse
                 </button>
@@ -146,9 +462,17 @@
     </div>
 
     <script>
+        // Elementos del DOM
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const matchDiv = document.getElementById('password-match');
+        const registerForm = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Mostrar/ocultar contraseña
         function togglePassword(inputId) {
             const passwordInput = document.getElementById(inputId);
-            const toggleButton = passwordInput.nextElementSibling.querySelector('i');
+            const toggleButton = passwordInput.parentNode.querySelector('.password-toggle i');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -159,49 +483,153 @@
             }
         }
         
-        // Validación de contraseña en tiempo real
-        const password1 = document.getElementById('password1');
-        const password2 = document.getElementById('password2');
-        const matchDiv = document.getElementById('password-match');
-        
-        function validatePassword() {
-            const password = password1.value;
-            
-            // Validar requisitos
-            const hasLength = password.length >= 8;
-            const hasLetter = /[a-zA-Z]/.test(password);
-            const hasNumber = /\d/.test(password);
-            
-            // Actualizar indicadores
-            updateRequirement('req-length', hasLength);
-            updateRequirement('req-letter', hasLetter);
-            updateRequirement('req-number', hasNumber);
-            
-            // Validar coincidencia
-            if (password2.value) {
-                if (password1.value === password2.value) {
-                    matchDiv.innerHTML = '<i class="fas fa-check valid"></i> Las contraseñas coinciden';
-                    matchDiv.style.color = '#27ae60';
-                } else {
-                    matchDiv.innerHTML = '<i class="fas fa-times invalid"></i> Las contraseñas no coinciden';
-                    matchDiv.style.color = '#e74c3c';
-                }
-            }
+        // Validar requisitos de contraseña
+        function validatePasswordRequirements(password) {
+            return {
+                length: password.length >= 8,
+                letter: /[a-zA-Z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*]/.test(password)
+            };
         }
         
+        // Actualizar indicador de requisito
         function updateRequirement(elementId, isValid) {
             const element = document.getElementById(elementId);
             const icon = element.querySelector('i');
             if (isValid) {
                 icon.className = 'fas fa-check-circle valid';
+                element.style.color = '#27ae60';
             } else {
                 icon.className = 'fas fa-times-circle invalid';
+                element.style.color = '#e74c3c';
             }
         }
         
+        // Validar contraseña en tiempo real
+        function validatePassword() {
+            const password = password1.value;
+            const requirements = validatePasswordRequirements(password);
+            
+            // Actualizar todos los requisitos
+            updateRequirement('req-length', requirements.length);
+            updateRequirement('req-letter', requirements.letter);
+            updateRequirement('req-number', requirements.number);
+            updateRequirement('req-special', requirements.special);
+            
+            // Validar coincidencia si hay texto en el segundo campo
+            if (password2.value) {
+                validatePasswordMatch();
+            }
+            
+            // Habilitar/deshabilitar botón según validación
+            validateForm();
+        }
+        
+        // Validar coincidencia de contraseñas
+        function validatePasswordMatch() {
+            if (password1.value && password2.value) {
+                if (password1.value === password2.value) {
+                    matchDiv.innerHTML = '<i class="fas fa-check valid"></i> Las contraseñas coinciden';
+                    matchDiv.style.color = '#27ae60';
+                    matchDiv.style.backgroundColor = '#d4edda';
+                    matchDiv.style.padding = '8px 12px';
+                    matchDiv.style.borderRadius = '5px';
+                    return true;
+                } else {
+                    matchDiv.innerHTML = '<i class="fas fa-times invalid"></i> Las contraseñas no coinciden';
+                    matchDiv.style.color = '#721c24';
+                    matchDiv.style.backgroundColor = '#f8d7da';
+                    matchDiv.style.padding = '8px 12px';
+                    matchDiv.style.borderRadius = '5px';
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        // Validar todo el formulario
+        function validateForm() {
+            const password = password1.value;
+            const requirements = validatePasswordRequirements(password);
+            const allRequirementsMet = Object.values(requirements).every(req => req);
+            const passwordsMatch = password1.value === password2.value && password1.value !== '';
+            
+            if (allRequirementsMet && passwordsMatch) {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+        }
+        
+        // Manejar envío del formulario
+        registerForm.addEventListener('submit', function(e) {
+            const password = password1.value;
+            const requirements = validatePasswordRequirements(password);
+            const allRequirementsMet = Object.values(requirements).every(req => req);
+            const passwordsMatch = password1.value === password2.value;
+            
+            if (!allRequirementsMet) {
+                e.preventDefault();
+                alert('Por favor, cumpla con todos los requisitos de la contraseña.');
+                password1.focus();
+                return false;
+            }
+            
+            if (!passwordsMatch) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden.');
+                password2.focus();
+                return false;
+            }
+            
+            // Mostrar indicador de carga
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading"></div> Creando cuenta...';
+            submitBtn.disabled = true;
+            
+            // Restaurar después de 3 segundos (por si hay error)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalContent;
+                submitBtn.disabled = false;
+            }, 3000);
+            
+            return true;
+        });
+        
         // Event listeners
-        password1.addEventListener('input', validatePassword);
-        password2.addEventListener('input', validatePassword);
+        password1.addEventListener('input', function() {
+            validatePassword();
+            validateForm();
+        });
+        
+        password2.addEventListener('input', function() {
+            validatePasswordMatch();
+            validateForm();
+        });
+        
+        // Validación inicial
+        validateForm();
+        
+        // Efecto de foco en los campos
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Animación al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.login-container').style.animation = 'fadeIn 0.5s ease-out';
+        });
     </script>
 </body>
 </html>
