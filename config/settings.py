@@ -12,7 +12,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+
+# ALLOWED_HOSTS mejorado para producción
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    # En producción, agrega tu dominio de Render
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '.onrender.com',
+    ]
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,7 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'accounts.context_processors.system_config',  # Configuración del sistema
+                'accounts.context_processors.system_config',
             ],
         },
     },
@@ -70,7 +81,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 else:
     DATABASES = {
@@ -109,10 +124,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = DEBUG
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        "https://tu-dominio.onrender.com",  # Actualizar cuando tengas el dominio
+    ]
 
 # Login/Logout redirects
 LOGIN_URL = 'login'
@@ -130,4 +145,16 @@ REST_FRAMEWORK = {
 }
 
 # Google Gemini API
-GEMINI_API_KEY = 'AIzaSyDGHSYXXPu_Grh34ZqThAVN9sUmZI8gEzM'  # Reemplazar con tu key
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDGHSYXXPu_Grh34ZqThAVN9sUmZI8gEzM')
+
+# Security settings para producción
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
