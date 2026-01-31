@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Pago - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-dollar-sign"></i>
+            Registrar Pago
+        </h1>
+        <a href="{% url 'sales:sale_detail' sale.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <!-- Info de la venta -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #555;">Información de la Venta</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div>
+                <small style="color: #777;">Venta #</small>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">{{ sale.id }}</div>
+            </div>
+            
+            <div>
+                <small style="color: #777;">Cliente</small>
+                <div style="font-size: 1.2rem; font-weight: 600; color: #333;">
+                    {% if sale.customer %}
+                    {{ sale.customer.name }}
+                    {% else %}
+                    Sin cliente
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <small style="color: #777;">Total</small>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${{ sale.total|floatformat:2 }}</div>
+            </div>
+            
+            <div>
+                <small style="color: #777;">Ya Pagado</small>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">${{ sale.paid_amount|floatformat:2 }}</div>
+            </div>
+            
+            <div>
+                <small style="color: #777;">Pendiente</small>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">${{ sale.pending_amount|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulario de pago -->
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Datos del Pago</h3>
+                
+                <div class="form-group">
+                    <label for="amount">
+                        <i class="fas fa-money-bill-wave"></i> Monto a Pagar *
+                    </label>
+                    <input type="number" 
+                           name="amount" 
+                           id="amount" 
+                           class="form-control" 
+                           step="0.01"
+                           max="{{ sale.pending_amount }}"
+                           value="{{ sale.pending_amount }}"
+                           required
+                           style="font-size: 1.5rem; font-weight: bold;">
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        Máximo: ${{ sale.pending_amount|floatformat:2 }}
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="payment_method">
+                        <i class="fas fa-credit-card"></i> Método de Pago *
+                    </label>
+                    <select name="payment_method" id="payment_method" class="form-control" required>
+                        <option value="CASH">Efectivo</option>
+                        <option value="CARD">Tarjeta</option>
+                        <option value="TRANSFER">Transferencia</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">
+                        <i class="fas fa-sticky-note"></i> Notas (opcional)
+                    </label>
+                    <textarea name="notes" 
+                              id="notes" 
+                              class="form-control" 
+                              rows="4"
+                              placeholder="Observaciones sobre el pago..."></textarea>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Atajos Rápidos</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="setAmount({{ sale.pending_amount }} / 4)">
+                        25%
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="setAmount({{ sale.pending_amount }} / 2)">
+                        50%
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="setAmount({{ sale.pending_amount }} * 0.75)">
+                        75%
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="setAmount({{ sale.pending_amount }})">
+                        Total
+                    </button>
+                </div>
+                
+                <!-- Vista previa -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-top: 20px;">
+                    <h4 style="margin-bottom: 15px;">Vista Previa</h4>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <small style="opacity: 0.9;">Pagando ahora</small>
+                        <div style="font-size: 1.8rem; font-weight: bold;" id="preview-paying">$0.00</div>
+                    </div>
+                    
+                    <div>
+                        <small style="opacity: 0.9;">Quedará pendiente</small>
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="preview-remaining">${{ sale.pending_amount|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Registrar Pago
+            </button>
+            <a href="{% url 'sales:sale_detail' sale.id %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const pendingAmount = {{ sale.pending_amount }};
+    const amountInput = document.getElementById('amount');
+    const previewPaying = document.getElementById('preview-paying');
+    const previewRemaining = document.getElementById('preview-remaining');
+    
+    function setAmount(value) {
+        amountInput.value = value.toFixed(2);
+        updatePreview();
+    }
+    
+    function updatePreview() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const remaining = pendingAmount - amount;
+        
+        previewPaying.textContent = '$' + amount.toFixed(2);
+        previewRemaining.textContent = '$' + Math.max(0, remaining).toFixed(2);
+    }
+    
+    amountInput.addEventListener('input', updatePreview);
+    updatePreview();
+</script>
+{% endblock %}

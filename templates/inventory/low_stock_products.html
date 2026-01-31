@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Bajo - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-exclamation-triangle"></i>
+            Productos con Stock Bajo
+        </h1>
+        <a href="{% url 'inventory:alerts' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Alertas
+        </a>
+    </div>
+    
+    {% if products %}
+    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+        <strong style="color: #856404;">
+            <i class="fas fa-info-circle"></i> Atención:
+        </strong>
+        <span style="color: #856404;">
+            Estos productos tienen stock igual o menor al stock mínimo configurado.
+        </span>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th>Diferencia</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr style="{% if product.stock == 0 %}background: #f8d7da;{% endif %}">
+                    <td>
+                        <a href="{% url 'inventory:product_detail' product.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            {{ product.name }}
+                        </a>
+                        <br><small style="color: #777;">{{ product.barcode }}</small>
+                    </td>
+                    <td>
+                        {% if product.category %}
+                        <span class="badge badge-info">{{ product.category.name }}</span>
+                        {% else %}
+                        <span style="color: #999;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.stock == 0 %}
+                        <span class="badge badge-danger" style="font-size: 1.1rem;">
+                            <i class="fas fa-times-circle"></i> SIN STOCK
+                        </span>
+                        {% else %}
+                        <span class="badge badge-warning" style="font-size: 1.1rem;">
+                            {{ product.stock }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">{{ product.min_stock }}</td>
+                    <td>
+                        {% with diff=product.min_stock|add:product.stock|floatformat:0 %}
+                        {% if product.stock < product.min_stock %}
+                        <span style="color: #dc3545; font-weight: 600;">
+                            -{{ diff|slice:"1:" }} unidades
+                        </span>
+                        {% else %}
+                        <span style="color: #28a745; font-weight: 600;">OK</span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td style="font-weight: 600;">${{ product.sale_price|floatformat:2 }}</td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'inventory:adjust_stock' product.id %}" 
+                               class="btn btn-success" 
+                               style="padding: 5px 15px; font-size: 0.9rem;">
+                                <i class="fas fa-plus"></i> Reabastecer
+                            </a>
+                            <a href="{% url 'inventory:product_detail' product.id %}" 
+                               class="btn btn-primary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Sugerencia de reabastecimiento -->
+    <div style="background: #d1ecf1; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #17a2b8;">
+        <h4 style="color: #0c5460; margin-bottom: 10px;">
+            <i class="fas fa-lightbulb"></i> Sugerencia
+        </h4>
+        <p style="color: #0c5460; margin: 0;">
+            Revisa estos productos y planifica tu próximo pedido de reabastecimiento para evitar quedarte sin stock.
+        </p>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #999;">
+        <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745; margin-bottom: 20px; display: block;"></i>
+        <h3>¡Excelente!</h3>
+        <p>Todos los productos tienen stock suficiente.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

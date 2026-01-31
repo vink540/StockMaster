@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo #{{ sale.id }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .receipt {
+            border: 2px dashed #333;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 0.9rem;
+            margin: 3px 0;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .items {
+            border-top: 2px dashed #333;
+            border-bottom: 2px dashed #333;
+            padding: 15px 0;
+            margin: 15px 0;
+        }
+        
+        .item {
+            margin: 10px 0;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        
+        .totals {
+            margin-top: 15px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        
+        .total-row.final {
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #333;
+            font-size: 0.85rem;
+        }
+        
+        .print-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .print-btn:hover {
+            background: #5568d3;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+            
+            .receipt {
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        🖨️ Imprimir Recibo
+    </button>
+    
+    <div class="receipt">
+        <div class="header">
+            <h1>STOCKMASTER</h1>
+            <p>Sistema de Gestión</p>
+            <p>--------------------------------</p>
+            <p>RECIBO DE VENTA</p>
+        </div>
+        
+        <div class="info-row">
+            <span>Recibo #:</span>
+            <span><strong>{{ sale.id }}</strong></span>
+        </div>
+        
+        <div class="info-row">
+            <span>Fecha:</span>
+            <span>{{ sale.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        {% if sale.customer %}
+        <div class="info-row">
+            <span>Cliente:</span>
+            <span>{{ sale.customer.name }}</span>
+        </div>
+        {% endif %}
+        
+        <div class="info-row">
+            <span>Vendedor:</span>
+            <span>{{ sale.created_by.username }}</span>
+        </div>
+        
+        <div class="items">
+            <div style="font-weight: bold; margin-bottom: 10px;">ARTÍCULOS:</div>
+            
+            {% for item in items %}
+            <div class="item">
+                <div class="item-name">{{ item.product.name }}</div>
+                <div class="item-details">
+                    <span>{{ item.quantity }} x ${{ item.unit_price|floatformat:2 }}</span>
+                    <span>${{ item.subtotal|floatformat:2 }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ sale.subtotal|floatformat:2 }}</span>
+            </div>
+            
+            {% if sale.discount > 0 %}
+            <div class="total-row">
+                <span>Descuento:</span>
+                <span>-${{ sale.discount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="total-row final">
+                <span>TOTAL:</span>
+                <span>${{ sale.total|floatformat:2 }}</span>
+            </div>
+            
+            <div class="total-row" style="margin-top: 10px;">
+                <span>Método de pago:</span>
+                <span>
+                    {% if sale.payment_method == 'CASH' %}EFECTIVO
+                    {% elif sale.payment_method == 'CARD' %}TARJETA
+                    {% elif sale.payment_method == 'TRANSFER' %}TRANSFERENCIA
+                    {% elif sale.payment_method == 'CREDIT' %}FIADO
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if sale.is_credit_sale %}
+            <div class="total-row">
+                <span>Pagado:</span>
+                <span>${{ sale.paid_amount|floatformat:2 }}</span>
+            </div>
+            <div class="total-row" style="color: #dc3545;">
+                <span>Pendiente:</span>
+                <span>${{ sale.pending_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>¡Gracias por su compra!</p>
+            <p style="margin-top: 10px;">--------------------------------</p>
+            <p>{{ sale.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Crear Backup{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-plus"></i> Crear Nuevo Backup</h1>
+        <a href="{% url 'accounts:backup_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 5px solid #ffc107; margin-bottom: 30px;">
+        <h3 style="color: #856404; margin-bottom: 15px;"><i class="fas fa-exclamation-triangle"></i> Importante</h3>
+        <p style="color: #856404; margin: 0;">
+            El backup incluirá toda la base de datos y archivos media (imágenes). 
+            Dependiendo del tamaño, puede tomar unos segundos.
+        </p>
+    </div>
+    
+    <div style="text-align: center; padding: 30px;">
+        <i class="fas fa-database" style="font-size: 5rem; color: #667eea; margin-bottom: 30px;"></i>
+        <h2 style="margin-bottom: 20px;">¿Crear backup ahora?</h2>
+        <p style="color: #666; margin-bottom: 30px;">
+            Se creará un archivo ZIP con toda tu información
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" style="font-size: 1.3rem; padding: 15px 40px;">
+                <i class="fas fa-check"></i> Sí, Crear Backup
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

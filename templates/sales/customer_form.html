@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_update %}Editar{% else %}Nuevo{% endif %} Cliente - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-{% if is_update %}edit{% else %}user-plus{% endif %}"></i>
+            {% if is_update %}Editar Cliente{% else %}Nuevo Cliente{% endif %}
+        </h1>
+        <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Información Personal</h3>
+                
+                <div class="form-group">
+                    <label for="name">
+                        <i class="fas fa-user"></i> Nombre Completo *
+                    </label>
+                    <input type="text" 
+                           name="name" 
+                           id="name" 
+                           class="form-control" 
+                           value="{% if customer %}{{ customer.name }}{% endif %}"
+                           required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">
+                        <i class="fas fa-phone"></i> Teléfono
+                    </label>
+                    <input type="tel" 
+                           name="phone" 
+                           id="phone" 
+                           class="form-control" 
+                           value="{% if customer %}{{ customer.phone }}{% endif %}"
+                           placeholder="+54 11 1234-5678">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           id="email" 
+                           class="form-control" 
+                           value="{% if customer %}{{ customer.email }}{% endif %}"
+                           placeholder="cliente@ejemplo.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">
+                        <i class="fas fa-map-marker-alt"></i> Dirección
+                    </label>
+                    <textarea name="address" 
+                              id="address" 
+                              class="form-control" 
+                              rows="3"
+                              placeholder="Calle, número, ciudad">{% if customer %}{{ customer.address }}{% endif %}</textarea>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Información de Crédito</h3>
+                
+                <div class="form-group">
+                    <label for="credit_limit">
+                        <i class="fas fa-money-bill-wave"></i> Límite de Crédito *
+                    </label>
+                    <input type="number" 
+                           name="credit_limit" 
+                           id="credit_limit" 
+                           class="form-control" 
+                           step="0.01"
+                           value="{% if customer %}{{ customer.credit_limit }}{% else %}0{% endif %}"
+                           required>
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        Monto máximo que el cliente puede deber.
+                    </small>
+                </div>
+                
+                {% if customer %}
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #555;">Estado Actual</h4>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <small style="color: #777;">Deuda Total</small>
+                        <div style="font-size: 1.3rem; font-weight: bold; color: {% if customer.total_debt > 0 %}#ffc107{% else %}#28a745{% endif %};">
+                            ${{ customer.total_debt|floatformat:2 }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <small style="color: #777;">Crédito Disponible</small>
+                        <div style="font-size: 1.3rem; font-weight: bold; color: {% if customer.available_credit > 0 %}#28a745{% else %}#dc3545{% endif %};">
+                            ${{ customer.available_credit|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="notes">
+                        <i class="fas fa-sticky-note"></i> Notas
+                    </label>
+                    <textarea name="notes" 
+                              id="notes" 
+                              class="form-control" 
+                              rows="5"
+                              placeholder="Información adicional sobre el cliente...">{% if customer %}{{ customer.notes }}{% endif %}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> 
+                {% if is_update %}Guardar Cambios{% else %}Crear Cliente{% endif %}
+            </button>
+            <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

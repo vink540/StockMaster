@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Cerrar Caja - StockMaster{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-lock"></i> Cerrar Caja</h1>
+    </div>
+    
+    <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 5px solid #ffc107; margin-bottom: 30px;">
+        <h3 style="color: #856404; margin-bottom: 15px;"><i class="fas fa-calculator"></i> Resumen</h3>
+        <div style="display: grid; gap: 10px;">
+            <div><strong>Efectivo Inicial:</strong> ${{ cash_register.opening_amount|floatformat:2 }}</div>
+            <div><strong>+ Ventas en Efectivo:</strong> ${{ cash_register.total_cash_sales|floatformat:2 }}</div>
+            <div style="border-top: 2px solid #856404; padding-top: 10px; margin-top: 10px; font-size: 1.2rem;">
+                <strong>= Efectivo Esperado:</strong> ${{ cash_register.expected_cash|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="closing_amount" style="font-size: 1.2rem;">
+                <i class="fas fa-money-bill-wave"></i> ¿Cuánto efectivo hay REALMENTE en caja? *
+            </label>
+            <input type="number" name="closing_amount" id="closing_amount" class="form-control" 
+                   step="0.01" min="0" required style="font-size: 1.5rem; padding: 20px;"
+                   placeholder="Cuenta el efectivo y escribe el total">
+        </div>
+        <div class="form-group">
+            <label for="notes"><i class="fas fa-comment"></i> Notas de Cierre (opcional)</label>
+            <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" class="btn btn-danger" style="font-size: 1.2rem; padding: 15px 30px;">
+                <i class="fas fa-lock"></i> Cerrar Caja
+            </button>
+            <a href="{% url 'sales:cash_register_current' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

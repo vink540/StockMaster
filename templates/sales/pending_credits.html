@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Fiados Pendientes - StockMaster{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 30px;">
+    <h1 style="font-size: 2rem; color: #333; display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-clock" style="color: #ffc107;"></i>
+        Fiados Pendientes de Cobro
+    </h1>
+</div>
+
+<!-- Total pendiente -->
+<div class="card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">Total Pendiente de Cobro</div>
+            <div style="font-size: 3rem; font-weight: bold; margin-top: 5px;">${{ total_pending|floatformat:2 }}</div>
+        </div>
+        <i class="fas fa-exclamation-circle" style="font-size: 5rem; opacity: 0.3;"></i>
+    </div>
+</div>
+
+<!-- Filtros rápidos -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a href="{% url 'sales:credit_sales' %}" class="btn btn-secondary">
+        <i class="fas fa-list"></i> Todas las Fiadas
+    </a>
+    <a href="{% url 'sales:pending_credits' %}" class="btn btn-warning">
+        <i class="fas fa-clock"></i> Solo Pendientes
+    </a>
+</div>
+
+<!-- Tabla de ventas pendientes -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-list"></i>
+            Ventas Pendientes
+        </h2>
+    </div>
+    
+    {% if sales %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Pagado</th>
+                    <th>Pendiente</th>
+                    <th>Días Vencidos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>
+                        <a href="{% url 'sales:sale_detail' sale.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            #{{ sale.id }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if sale.customer %}
+                        <a href="{% url 'sales:customer_detail' sale.customer.id %}" 
+                           style="text-decoration: none; color: #667eea;">
+                            <i class="fas fa-user"></i> {{ sale.customer.name }}
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>{{ sale.created_at|date:"d/m/Y" }}</td>
+                    <td style="font-weight: 600;">${{ sale.total|floatformat:2 }}</td>
+                    <td style="color: #28a745; font-weight: 600;">${{ sale.paid_amount|floatformat:2 }}</td>
+                    <td>
+                        <span class="badge badge-warning" style="font-size: 1rem;">
+                            ${{ sale.pending_amount|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        {% with days_ago=sale.created_at|timesince %}
+                        <span class="badge {% if 'week' in days_ago or 'month' in days_ago %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ days_ago }}
+                        </span>
+                        {% endwith %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'sales:sale_detail' sale.id %}" 
+                               class="btn btn-primary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'sales:add_payment' sale.id %}" 
+                               class="btn btn-success" 
+                               style="padding: 5px 10px; font-size: 0.9rem;">
+                                <i class="fas fa-dollar-sign"></i> Cobrar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #999;">
+        <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745; margin-bottom: 20px; display: block;"></i>
+        <h3>¡Excelente!</h3>
+        <p>No hay ventas pendientes de cobro.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

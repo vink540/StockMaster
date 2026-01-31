@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Ventas - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-shopping-cart"></i>
+            Ventas
+        </h1>
+        <a href="{% url 'sales:sale_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nueva Venta
+        </a>
+    </div>
+    
+    <!-- Estadísticas rápidas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+            <div style="font-size: 0.9rem; opacity: 0.9;">Total Ventas</div>
+            <div style="font-size: 2rem; font-weight: bold; margin-top: 5px;">${{ total_sales|floatformat:2 }}</div>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <form method="get" style="margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Buscar por # o cliente..."
+                       value="{{ search }}">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="payment_method" class="form-control">
+                    <option value="">Todos los métodos</option>
+                    <option value="CASH" {% if payment_method == 'CASH' %}selected{% endif %}>Efectivo</option>
+                    <option value="CARD" {% if payment_method == 'CARD' %}selected{% endif %}>Tarjeta</option>
+                    <option value="TRANSFER" {% if payment_method == 'TRANSFER' %}selected{% endif %}>Transferencia</option>
+                    <option value="CREDIT" {% if payment_method == 'CREDIT' %}selected{% endif %}>Fiado</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="is_paid" class="form-control">
+                    <option value="">Todos los estados</option>
+                    <option value="paid" {% if is_paid_filter == 'paid' %}selected{% endif %}>Pagadas</option>
+                    <option value="pending" {% if is_paid_filter == 'pending' %}selected{% endif %}>Pendientes</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </div>
+    </form>
+    
+    <!-- Tabla de ventas -->
+    {% if sales %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Método de Pago</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>
+                        <a href="{% url 'sales:sale_detail' sale.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            #{{ sale.id }}
+                        </a>
+                    </td>
+                    <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if sale.customer %}
+                        <a href="{% url 'sales:customer_detail' sale.customer.id %}" 
+                           style="text-decoration: none; color: #667eea;">
+                            <i class="fas fa-user"></i> {{ sale.customer.name }}
+                        </a>
+                        {% else %}
+                        <span style="color: #999;">Cliente general</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if sale.payment_method == 'CASH' %}
+                        <i class="fas fa-money-bill" style="color: #28a745;"></i> Efectivo
+                        {% elif sale.payment_method == 'CARD' %}
+                        <i class="fas fa-credit-card" style="color: #667eea;"></i> Tarjeta
+                        {% elif sale.payment_method == 'TRANSFER' %}
+                        <i class="fas fa-exchange-alt" style="color: #17a2b8;"></i> Transferencia
+                        {% elif sale.payment_method == 'CREDIT' %}
+                        <i class="fas fa-handshake" style="color: #ffc107;"></i> Fiado
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600; font-size: 1.1rem;">${{ sale.total|floatformat:2 }}</td>
+                    <td>
+                        {% if sale.is_paid %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle"></i> Pagado
+                        </span>
+                        {% else %}
+                        <span class="badge badge-warning">
+                            <i class="fas fa-clock"></i> Pendiente ${{ sale.pending_amount|floatformat:2 }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'sales:sale_detail' sale.id %}" 
+                               class="btn btn-primary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;"
+                               title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'sales:sale_receipt' sale.id %}" 
+                               class="btn btn-secondary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;"
+                               title="Ver recibo"
+                               target="_blank">
+                                <i class="fas fa-receipt"></i>
+                            </a>
+                            {% if not sale.is_paid and sale.payment_method == 'CREDIT' %}
+                            <a href="{% url 'sales:add_payment' sale.id %}" 
+                               class="btn btn-success" 
+                               style="padding: 5px 10px; font-size: 0.9rem;"
+                               title="Registrar pago">
+                                <i class="fas fa-dollar-sign"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #999;">
+        <i class="fas fa-shopping-cart" style="font-size: 4rem; margin-bottom: 20px; display: block;"></i>
+        <h3>No hay ventas registradas</h3>
+        <p>Comienza registrando tu primera venta.</p>
+        <a href="{% url 'sales:sale_create' %}" class="btn btn-success" style="margin-top: 20px;">
+            <i class="fas fa-plus"></i> Nueva Venta
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

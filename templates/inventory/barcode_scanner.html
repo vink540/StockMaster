@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Escáner de Códigos - StockMaster{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<style>
+    #camera-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #camera-modal.active {
+        display: flex;
+    }
+    
+    .camera-container {
+        position: relative;
+        max-width: 640px;
+        width: 90%;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .camera-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .close-camera {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    #camera-view {
+        position: relative;
+        width: 100%;
+        height: 480px;
+        background: #000;
+    }
+    
+    #camera-view video,
+    #camera-view canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .scan-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 400px;
+        height: 200px;
+        border: 3px solid #667eea;
+        border-radius: 12px;
+        pointer-events: none;
+    }
+    
+    .scan-line {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(to right, transparent, #667eea, transparent);
+        animation: scanLine 2s linear infinite;
+    }
+    
+    @keyframes scanLine {
+        0%, 100% { top: 0; }
+        50% { top: calc(100% - 3px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-barcode"></i>
+            Escáner de Códigos de Barras
+        </h1>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <!-- Panel de escaneo -->
+        <div>
+            <h3 style="margin-bottom: 20px; color: #555;">
+                <i class="fas fa-qrcode"></i> Escanear Código
+            </h3>
+            
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 40px; text-align: center; color: white; margin-bottom: 20px;">
+                <i class="fas fa-barcode" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                <p style="font-size: 1.1rem;">Usa un lector USB o tu cámara</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="barcode-input">
+                    <i class="fas fa-keyboard"></i> Código de Barras
+                </label>
+                <input type="text" 
+                       id="barcode-input" 
+                       class="form-control" 
+                       placeholder="Escanea o ingresa el código"
+                       autofocus
+                       style="font-size: 1.5rem; text-align: center; letter-spacing: 2px; font-family: monospace;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-secondary" onclick="clearScanner()">
+                    <i class="fas fa-eraser"></i> Limpiar
+                </button>
+                <button class="btn btn-success" onclick="openCameraScanner()">
+                    <i class="fas fa-camera"></i> Usar Cámara
+                </button>
+            </div>
+        </div>
+        
+        <!-- Resultado -->
+        <div>
+            <h3 style="margin-bottom: 20px; color: #555;">
+                <i class="fas fa-search"></i> Resultado
+            </h3>
+            
+            <div id="result" style="min-height: 300px;">
+                <div style="text-align: center; padding: 50px; color: #999;">
+                    <i class="fas fa-barcode" style="font-size: 4rem; margin-bottom: 20px; display: block;"></i>
+                    <p>Esperando escaneo...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de cámara -->
+<div id="camera-modal">
+    <div class="camera-container">
+        <div class="camera-header">
+            <h3><i class="fas fa-camera"></i> Escanear con Cámara</h3>
+            <button class="close-camera" onclick="closeCameraScanner()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="camera-view">
+            <div class="scan-frame">
+                <div class="scan-line"></div>
+            </div>
+        </div>
+        <div style="padding: 20px; background: #f8f9fa; text-align: center; color: #777;">
+            <i class="fas fa-info-circle"></i>
+            Apunta la cámara hacia el código de barras
+        </div>
+    </div>
+</div>
+
+<script>
+let cameraActive = false;
+
+// Procesar código
+function processBarcode(code) {
+    if (!code || code.length < 3) return;
+    
+    document.getElementById('result').innerHTML = `
+        <div style="text-align: center; padding: 30px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i>
+            <p style="margin-top: 20px; color: #555;">Buscando producto...</p>
+        </div>
+    `;
+    
+    fetch(`{% url 'inventory:search_barcode' %}?barcode=${encodeURIComponent(code)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.found) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 25px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                            ${data.image ? `<img src="${data.image}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">` : ''}
+                            <div>
+                                <h3 style="color: #155724; margin-bottom: 5px;">${data.name}</h3>
+                                <code style="background: white; padding: 5px 10px; border-radius: 5px;">${data.barcode}</code>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <div>
+                                <small style="color: #155724;">Precio</small>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #155724;">$${data.price.toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <small style="color: #155724;">Stock</small>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #155724;">${data.stock}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; gap: 10px;">
+                            <a href="/products/${data.id}/" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Ver Detalles
+                            </a>
+                            <a href="/products/${data.id}/edit/" class="btn btn-secondary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 25px; text-align: center;">
+                        <i class="fas fa-question-circle" style="font-size: 3rem; color: #856404; margin-bottom: 15px; display: block;"></i>
+                        <h3 style="color: #856404;">Producto no encontrado</h3>
+                        <p style="color: #856404; margin: 10px 0;">El código <strong>${code}</strong> no existe en la base de datos.</p>
+                        <a href="/products/add/" class="btn btn-success" style="margin-top: 15px;">
+                            <i class="fas fa-plus"></i> Agregar Nuevo Producto
+                        </a>
+                    </div>
+                `;
+            }
+            
+            setTimeout(() => {
+                document.getElementById('barcode-input').value = '';
+                document.getElementById('barcode-input').focus();
+            }, 1000);
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('result').innerHTML = `
+                <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; padding: 25px; text-align: center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #721c24; margin-bottom: 15px; display: block;"></i>
+                    <p style="color: #721c24;">Error al buscar el producto</p>
+                </div>
+            `;
+        });
+}
+
+// Event listeners
+document.getElementById('barcode-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        processBarcode(this.value.trim());
+    }
+    if (e.key === 'Escape') {
+        clearScanner();
+    }
+});
+
+// Auto-procesar cuando se complete el código (lectores USB)
+let timeout;
+document.getElementById('barcode-input').addEventListener('input', function() {
+    clearTimeout(timeout);
+    if (this.value.length >= 8) {
+        timeout = setTimeout(() => {
+            processBarcode(this.value.trim());
+        }, 500);
+    }
+});
+
+function clearScanner() {
+    document.getElementById('barcode-input').value = '';
+    document.getElementById('barcode-input').focus();
+    document.getElementById('result').innerHTML = `
+        <div style="text-align: center; padding: 50px; color: #999;">
+            <i class="fas fa-barcode" style="font-size: 4rem; margin-bottom: 20px; display: block;"></i>
+            <p>Esperando escaneo...</p>
+        </div>
+    `;
+}
+
+// Funciones de cámara
+function openCameraScanner() {
+    document.getElementById('camera-modal').classList.add('active');
+    cameraActive = true;
+    
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#camera-view'),
+            constraints: {
+                width: 640,
+                height: 480,
+                facingMode: "environment"
+            }
+        },
+        decoder: {
+            readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader", "upc_reader"]
+        },
+        locate: true
+    }, function(err) {
+        if (err) {
+            console.error(err);
+            alert('Error al acceder a la cámara. Por favor, da permisos.');
+            closeCameraScanner();
+            return;
+        }
+        Quagga.start();
+    });
+    
+    Quagga.onDetected(function(result) {
+        if (result && result.codeResult && result.codeResult.code) {
+            const code = result.codeResult.code;
+            closeCameraScanner();
+            document.getElementById('barcode-input').value = code;
+            processBarcode(code);
+        }
+    });
+}
+
+function closeCameraScanner() {
+    if (cameraActive) {
+        Quagga.stop();
+        cameraActive = false;
+    }
+    document.getElementById('camera-modal').classList.remove('active');
+}
+</script>
+{% endblock %}

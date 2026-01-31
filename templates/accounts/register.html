@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Registrarse - StockMaster{% endblock %}
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="card" style="max-width: 450px; width: 100%; margin: 20px;">
+        <div style="text-align: center; padding: 30px 30px 20px;">
+            <i class="fas fa-user-plus" style="font-size: 4rem; color: #667eea; margin-bottom: 20px;"></i>
+            <h1 style="margin: 0; color: #333;">Crear Cuenta</h1>
+            <p style="color: #999; margin-top: 10px;">Regístrate para usar StockMaster</p>
+        </div>
+        
+        <form method="post" style="padding: 0 30px 30px;">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Usuario *</label>
+                <input type="text" name="username" id="username" class="form-control" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="email"><i class="fas fa-envelope"></i> Email (opcional)</label>
+                <input type="email" name="email" id="email" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Contraseña *</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password2"><i class="fas fa-lock"></i> Confirmar Contraseña *</label>
+                <input type="password" name="password2" id="password2" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 10px;">
+                <i class="fas fa-user-plus"></i> Registrarse
+            </button>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{% url 'login' %}" style="color: #667eea; text-decoration: none;">
+                    ¿Ya tienes cuenta? Inicia sesión
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

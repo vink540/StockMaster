@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Reporte de Productos{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-boxes"></i> Productos Más Vendidos</h1>
+        <a href="{% url 'reports_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Código</th>
+                <th>Cantidad Vendida</th>
+                <th>Veces Vendido</th>
+                <th>Ingresos Totales</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in products_data %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ item.product__name }}</strong></td>
+                <td><code>{{ item.product__barcode }}</code></td>
+                <td>{{ item.total_quantity|floatformat:"-1" }}</td>
+                <td>{{ item.times_sold }}</td>
+                <td style="color: #28a745; font-weight: 600;">${{ item.total_revenue|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

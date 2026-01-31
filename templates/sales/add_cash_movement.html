@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Movimiento de Caja - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-exchange-alt"></i>
+            Agregar Movimiento de Caja
+        </h1>
+        <a href="{% url 'sales:cash_register_current' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="max-width: 600px; margin: 0 auto;">
+            <!-- Tipo de movimiento -->
+            <div class="form-group">
+                <label for="movement_type">
+                    <i class="fas fa-arrow-right"></i> Tipo de Movimiento *
+                </label>
+                <select name="movement_type" id="movement_type" class="form-control" required>
+                    <option value="">-- Seleccionar --</option>
+                    <option value="IN">Ingreso de Efectivo</option>
+                    <option value="OUT">Retiro de Efectivo</option>
+                    <option value="EXPENSE">Gasto</option>
+                    <option value="OTHER_IN">Otro Ingreso</option>
+                    <option value="OTHER_OUT">Otra Salida</option>
+                </select>
+                <small style="color: #777; display: block; margin-top: 5px;">
+                    <i class="fas fa-info-circle"></i> 
+                    Selecciona el tipo de movimiento que deseas registrar
+                </small>
+            </div>
+            
+            <!-- Monto -->
+            <div class="form-group">
+                <label for="amount">
+                    <i class="fas fa-dollar-sign"></i> Monto *
+                </label>
+                <input type="number" 
+                       name="amount" 
+                       id="amount" 
+                       class="form-control" 
+                       required
+                       min="0"
+                       placeholder="Ejemplo: 5000">
+                <small style="color: #777; display: block; margin-top: 5px;">
+                    <i class="fas fa-info-circle"></i> 
+                    Ingresa el monto del movimiento
+                </small>
+            </div>
+            
+            <!-- Motivo -->
+            <div class="form-group">
+                <label for="reason">
+                    <i class="fas fa-comment"></i> Motivo/Descripción *
+                </label>
+                <textarea name="reason" 
+                          id="reason" 
+                          class="form-control" 
+                          rows="3"
+                          required
+                          placeholder="Ejemplo: Pago de alquiler, Compra de insumos, Aporte de socio, etc."></textarea>
+                <small style="color: #777; display: block; margin-top: 5px;">
+                    <i class="fas fa-info-circle"></i> 
+                    Describe brevemente el motivo del movimiento
+                </small>
+            </div>
+            
+            <!-- Categoría (opcional) -->
+            <div class="form-group">
+                <label for="category">
+                    <i class="fas fa-tag"></i> Categoría (opcional)
+                </label>
+                <select name="category" id="category" class="form-control">
+                    <option value="">-- Sin categoría --</option>
+                    <option value="RENT">Alquiler</option>
+                    <option value="SERVICES">Servicios (luz, agua, internet)</option>
+                    <option value="SUPPLIES">Insumos y materiales</option>
+                    <option value="SALARY">Sueldos</option>
+                    <option value="MAINTENANCE">Mantenimiento</option>
+                    <option value="TRANSPORT">Transporte</option>
+                    <option value="OTHER">Otros</option>
+                </select>
+            </div>
+            
+            <!-- Vista previa del movimiento -->
+            <div id="preview" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px; color: #555;">
+                    <i class="fas fa-eye"></i> Vista Previa
+                </h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #777;">Tipo:</span>
+                    <strong id="preview_type"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #777;">Monto:</span>
+                    <strong id="preview_amount" style="font-size: 1.3rem;"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #777;">Motivo:</span>
+                    <strong id="preview_reason"></strong>
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Registrar Movimiento
+                </button>
+                <a href="{% url 'sales:cash_register_current' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Vista previa en tiempo real
+    const movementType = document.getElementById('movement_type');
+    const amount = document.getElementById('amount');
+    const reason = document.getElementById('reason');
+    const preview = document.getElementById('preview');
+    const previewType = document.getElementById('preview_type');
+    const previewAmount = document.getElementById('preview_amount');
+    const previewReason = document.getElementById('preview_reason');
+    
+    const typeLabels = {
+        'IN': '💰 Ingreso de Efectivo',
+        'OUT': '💸 Retiro de Efectivo',
+        'EXPENSE': '💳 Gasto',
+        'OTHER_IN': '➕ Otro Ingreso',
+        'OTHER_OUT': '➖ Otra Salida'
+    };
+    
+    function updatePreview() {
+        const typeValue = movementType.value;
+        const amountValue = parseInt(amount.value) || 0;
+        const reasonValue = reason.value;
+        
+        if (typeValue && amountValue > 0 && reasonValue) {
+            preview.style.display = 'block';
+            previewType.textContent = typeLabels[typeValue] || typeValue;
+            
+            // Color según tipo
+            const isIncome = typeValue === 'IN' || typeValue === 'OTHER_IN';
+            previewAmount.style.color = isIncome ? '#28a745' : '#dc3545';
+            previewAmount.textContent = (isIncome ? '+' : '-') + ' $' + amountValue;
+            
+            previewReason.textContent = reasonValue;
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    
+    movementType.addEventListener('change', updatePreview);
+    amount.addEventListener('input', updatePreview);
+    reason.addEventListener('input', updatePreview);
+    
+    // Cambiar color del monto según el tipo de movimiento
+    movementType.addEventListener('change', function() {
+        const isIncome = this.value === 'IN' || this.value === 'OTHER_IN';
+        amount.style.borderColor = isIncome ? '#28a745' : '#dc3545';
+    });
+</script>
+{% endblock %}

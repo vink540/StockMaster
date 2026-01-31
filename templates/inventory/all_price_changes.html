@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Cambios de Precios - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-history"></i>
+            Todos los Cambios de Precios
+        </h1>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Productos
+        </a>
+    </div>
+    
+    {% if changes %}
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #666;">
+            <i class="fas fa-info-circle"></i>
+            Mostrando los últimos <strong>{{ changes.count }}</strong> cambios de precios registrados en el sistema.
+        </p>
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Usuario</th>
+                    <th>Precio Costo</th>
+                    <th>Precio Venta</th>
+                    <th>Margen</th>
+                    <th>Motivo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for change in changes %}
+                <tr>
+                    <td style="white-space: nowrap;">
+                        <div style="font-size: 0.9rem; font-weight: 600;">
+                            {{ change.changed_at|date:"d/m/Y" }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #999;">
+                            {{ change.changed_at|date:"H:i" }}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'inventory:product_detail' change.product.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            {{ change.product.name }}
+                        </a>
+                        <div style="font-size: 0.85rem; color: #999;">
+                            <code>{{ change.product.barcode }}</code>
+                        </div>
+                    </td>
+                    <td>
+                        <i class="fas fa-user" style="color: #667eea;"></i>
+                        {{ change.changed_by.username|default:"Sistema" }}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: #999;">
+                            <del>${{ change.previous_cost_price|floatformat:2 }}</del>
+                        </div>
+                        <div style="font-weight: 600;">
+                            ${{ change.new_cost_price|floatformat:2 }}
+                        </div>
+                        {% if change.cost_change_percent != 0 %}
+                        <span class="badge {{ change.get_cost_change_badge }}" style="font-size: 0.75rem;">
+                            {% if change.cost_change_percent > 0 %}↑{% else %}↓{% endif %}
+                            {{ change.cost_change_percent|floatformat:1 }}%
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.8rem; color: #999;">
+                            <del>${{ change.previous_sale_price|floatformat:2 }}</del>
+                        </div>
+                        <div style="font-weight: 600;">
+                            ${{ change.new_sale_price|floatformat:2 }}
+                        </div>
+                        {% if change.sale_change_percent != 0 %}
+                        <span class="badge {{ change.get_sale_change_badge }}" style="font-size: 0.75rem;">
+                            {% if change.sale_change_percent > 0 %}↑{% else %}↓{% endif %}
+                            {{ change.sale_change_percent|floatformat:1 }}%
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: {% if change.profit_margin > 30 %}#28a745{% elif change.profit_margin > 15 %}#ffc107{% else %}#dc3545{% endif %}">
+                            {{ change.profit_margin|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td style="max-width: 200px;">
+                        {% if change.reason %}
+                        <span style="font-size: 0.85rem;">{{ change.reason }}</span>
+                        {% else %}
+                        <span style="color: #999; font-style: italic; font-size: 0.85rem;">Sin motivo especificado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'inventory:price_history' change.product.id %}" 
+                           class="btn btn-secondary" 
+                           style="padding: 5px 10px; font-size: 0.85rem;"
+                           title="Ver historial completo">
+                            <i class="fas fa-chart-line"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px;">
+        <i class="fas fa-chart-line" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+        <h3 style="color: #999;">No hay cambios de precios registrados</h3>
+        <p style="color: #999;">Los cambios se registrarán automáticamente cuando edites precios de productos.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

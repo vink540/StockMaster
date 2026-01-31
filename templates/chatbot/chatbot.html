@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block title %}Asistente IA - StockMaster{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h1 class="card-title" style="color: white; margin-bottom: 5px;">
+                    <i class="fas fa-robot"></i> Asistente Virtual IA
+                </h1>
+                <span style="opacity: 0.9; font-size: 0.9rem;">
+                    Sesión de: <strong>{{ user.username }}</strong>
+                </span>
+            </div>
+            <button onclick="clearAllMessages()" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); border: none;">
+                <i class="fas fa-trash"></i> Limpiar Chat
+            </button>
+        </div>
+    </div>
+    
+    <div id="chatContainer" style="height: 500px; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px;">
+        <!-- Los mensajes se cargarán dinámicamente aquí -->
+    </div>
+    
+    <form id="chatForm" style="display: flex; gap: 10px;">
+        <input type="text" id="messageInput" class="form-control" placeholder="Escribe tu pregunta aquí..." autocomplete="off" style="flex: 1; padding: 15px; font-size: 1rem;">
+        <button type="submit" class="btn btn-primary" style="padding: 15px 30px;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </form>
+    
+    <div id="typing" style="display: none; margin-top: 10px; color: #999; font-style: italic;">
+        <i class="fas fa-circle-notch fa-spin"></i> El asistente está escribiendo...
+    </div>
+</div>
+
+<style>
+.suggestion-btn {
+    background: #e9ecef;
+    border: 1px solid #dee2e6;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.suggestion-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+</style>
+
+<script>
+// ✅ SOLUCIÓN: Almacenar mensajes por usuario en sessionStorage
+const CURRENT_USER = "{{ user.username }}";
+const CHAT_STORAGE_KEY = `chatbot_messages_${CURRENT_USER}`;
+
+const chatContainer = document.getElementById('chatContainer');
+const chatForm = document.getElementById('chatForm');
+const messageInput = document.getElementById('messageInput');
+const typingIndicator = document.getElementById('typing');
+
+// Inicializar chat al cargar
+function initializeChat() {
+    try {
+        const savedMessages = sessionStorage.getItem(CHAT_STORAGE_KEY);
+        if (savedMessages) {
+            chatContainer.innerHTML = savedMessages;
+        } else {
+            showWelcomeMessage();
+        }
+    } catch (e) {
+        console.error('Error cargando mensajes:', e);
+        showWelcomeMessage();
+    }
+    scrollToBottom();
+}
+
+// Mensaje de bienvenida
+function showWelcomeMessage() {
+    const welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'chat-message bot-message';
+    welcomeDiv.style.marginBottom = '20px';
+    welcomeDiv.innerHTML = `
+        <div style="display: flex; gap: 10px; align-items: start;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 80%;">
+                <p style="margin: 0;">👋 ¡Hola <strong>${CURRENT_USER}</strong>! Soy tu asistente virtual de StockMaster. ¿En qué puedo ayudarte?</p>
+                <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button onclick="sendSuggestion('¿Cómo hago una venta?')" class="suggestion-btn">¿Cómo hago una venta?</button>
+                    <button onclick="sendSuggestion('Busca productos de Coca Cola')" class="suggestion-btn">Buscar productos</button>
+                    <button onclick="sendSuggestion('¿Cómo abro la caja?')" class="suggestion-btn">Abrir caja</button>
+                    <button onclick="sendSuggestion('Productos con stock bajo')" class="suggestion-btn">Stock bajo</button>
+                </div>
+            </div>
+        </div>
+    `;
+    chatContainer.appendChild(welcomeDiv);
+    saveChatMessages();
+}
+
+// Guardar mensajes en sessionStorage
+function saveChatMessages() {
+    try {
+        sessionStorage.setItem(CHAT_STORAGE_KEY, chatContainer.innerHTML);
+    } catch (e) {
+        console.error('Error guardando mensajes:', e);
+    }
+}
+
+// Limpiar todos los mensajes
+function clearAllMessages() {
+    if (confirm('¿Estás seguro de que quieres limpiar toda la conversación?')) {
+        chatContainer.innerHTML = '';
+        showWelcomeMessage();
+        messageInput.focus();
+    }
+}
+
+// Auto-scroll
+function scrollToBottom() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Agregar mensaje del usuario
+function addUserMessage(message) {
+    const div = document.createElement('div');
+    div.style.marginBottom = '20px';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'flex-end';
+    div.innerHTML = `
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <p style="margin: 0; word-wrap: break-word;">${escapeHtml(message)}</p>
+        </div>
+    `;
+    chatContainer.appendChild(div);
+    scrollToBottom();
+    saveChatMessages();
+}
+
+// Agregar mensaje del bot
+function addBotMessage(message) {
+    const div = document.createElement('div');
+    div.style.marginBottom = '20px';
+    div.innerHTML = `
+        <div style="display: flex; gap: 10px; align-items: start;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 80%;">
+                <p style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(message)}</p>
+            </div>
+        </div>
+    `;
+    chatContainer.appendChild(div);
+    scrollToBottom();
+    saveChatMessages();
+}
+
+// Enviar mensaje
+async function sendMessage(message) {
+    if (!message.trim()) return;
+    
+    // Mostrar mensaje del usuario
+    addUserMessage(message);
+    messageInput.value = '';
+    
+    // Mostrar indicador de escritura
+    typingIndicator.style.display = 'block';
+    
+    try {
+        const response = await fetch('/chatbot/api/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        typingIndicator.style.display = 'none';
+        
+        if (data.status === 'success') {
+            addBotMessage(data.response);
+        } else {
+            addBotMessage('❌ Lo siento, ocurrió un error. Por favor intenta de nuevo.');
+        }
+    } catch (error) {
+        typingIndicator.style.display = 'none';
+        addBotMessage('❌ Error de conexión. Por favor verifica tu conexión a internet.');
+        console.error('Error:', error);
+    }
+}
+
+// Form submit
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage(messageInput.value);
+});
+
+// Sugerencias
+function sendSuggestion(text) {
+    messageInput.value = text;
+    sendMessage(text);
+}
+
+// Función para escapar HTML (seguridad)
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Focus automático
+messageInput.focus();
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    initializeChat();
+});
+</script>
+{% endblock %}

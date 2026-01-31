@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos por Vencer - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-clock"></i>
+            Productos por Vencer
+        </h1>
+        <a href="{% url 'inventory:alerts' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Alertas
+        </a>
+    </div>
+    
+    <!-- Filtro de días -->
+    <form method="get" style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label style="font-weight: 600;">Mostrar productos que vencen en:</label>
+            <select name="days" class="form-control" style="max-width: 200px;" onchange="this.form.submit()">
+                <option value="7" {% if days == 7 %}selected{% endif %}>7 días</option>
+                <option value="15" {% if days == 15 %}selected{% endif %}>15 días</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>30 días</option>
+                <option value="60" {% if days == 60 %}selected{% endif %}>60 días</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>90 días</option>
+            </select>
+        </div>
+    </form>
+    
+    {% if products %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Precio</th>
+                    <th>Vencimiento</th>
+                    <th>Días Restantes</th>
+                    <th>Urgencia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                {% with days_left=product.expiration_date|timeuntil %}
+                <tr style="{% if 'day' in days_left and not 'days' in days_left %}background: #fff3cd;{% endif %}">
+                    <td>
+                        <a href="{% url 'inventory:product_detail' product.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            {{ product.name }}
+                        </a>
+                        <br><small style="color: #777;">{{ product.barcode }}</small>
+                    </td>
+                    <td>
+                        {% if product.category %}
+                        <span class="badge badge-info">{{ product.category.name }}</span>
+                        {% else %}
+                        <span style="color: #999;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">{{ product.stock }}</span>
+                    </td>
+                    <td style="font-weight: 600;">${{ product.sale_price|floatformat:2 }}</td>
+                    <td>{{ product.expiration_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge {% if 'day' in days_left and not 'days' in days_left %}badge-danger{% else %}badge-warning{% endif %}">
+                            <i class="fas fa-hourglass-half"></i> {{ days_left }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if 'day' in days_left and not 'days' in days_left %}
+                        <span class="badge badge-danger">¡URGENTE!</span>
+                        {% elif 'week' in days_left %}
+                        <span class="badge badge-warning">Alta</span>
+                        {% else %}
+                        <span class="badge badge-info">Media</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'inventory:product_detail' product.id %}" 
+                               class="btn btn-primary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'inventory:product_update' product.id %}" 
+                               class="btn btn-secondary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #999;">
+        <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745; margin-bottom: 20px; display: block;"></i>
+        <h3>¡Todo bien!</h3>
+        <p>No hay productos por vencer en los próximos {{ days }} días.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

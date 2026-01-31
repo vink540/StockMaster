@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajustar Stock - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-boxes"></i>
+            Ajustar Stock
+        </h1>
+        <a href="{% url 'inventory:product_detail' product.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <!-- Info del producto -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #555;">{{ product.name }}</h3>
+        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+            <div>
+                <small style="color: #777;">Código</small>
+                <div style="font-weight: 600;">{{ product.barcode }}</div>
+            </div>
+            <div>
+                <small style="color: #777;">Stock Actual</small>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">{{ product.stock }}</div>
+            </div>
+            <div>
+                <small style="color: #777;">Precio</small>
+                <div style="font-weight: 600;">${{ product.sale_price|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="movement_type">
+                <i class="fas fa-exchange-alt"></i> Tipo de Movimiento *
+            </label>
+            <select name="movement_type" id="movement_type" class="form-control" required>
+                <option value="IN">Entrada (Agregar stock)</option>
+                <option value="OUT">Salida (Quitar stock)</option>
+                <option value="ADJUSTMENT">Ajuste (Establecer cantidad exacta)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">
+                <i class="fas fa-sort-numeric-up"></i> Cantidad *
+            </label>
+            <input type="number" 
+                   name="quantity" 
+                   id="quantity" 
+                   class="form-control" 
+                   value="1"
+                   min="0"
+                   step="0.001"
+                   required
+                   style="font-size: 1.5rem; font-weight: bold;">
+            <small style="color: #777; display: block; margin-top: 5px;" id="help-text">
+                Ingrese la cantidad a agregar al stock
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="reason">
+                <i class="fas fa-comment"></i> Motivo *
+            </label>
+            <textarea name="reason" 
+                      id="reason" 
+                      class="form-control" 
+                      rows="4"
+                      required
+                      placeholder="Ej: Reposición de mercadería, Pérdida por vencimiento, Corrección de inventario..."></textarea>
+        </div>
+        
+        <!-- Vista previa -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+            <h4 style="margin-bottom: 15px;">Vista Previa</h4>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <small style="opacity: 0.9;">Stock Actual</small>
+                    <div style="font-size: 1.8rem; font-weight: bold;">{{ product.stock }}</div>
+                </div>
+                <div>
+                    <small style="opacity: 0.9;">Operación</small>
+                    <div style="font-size: 1.8rem; font-weight: bold;" id="preview-operation">+0</div>
+                </div>
+                <div>
+                    <small style="opacity: 0.9;">Nuevo Stock</small>
+                    <div style="font-size: 1.8rem; font-weight: bold;" id="preview-new">{{ product.stock }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Confirmar Ajuste
+            </button>
+            <a href="{% url 'inventory:product_detail' product.id %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const currentStock = {{ product.stock }};
+    const movementType = document.getElementById('movement_type');
+    const quantityInput = document.getElementById('quantity');
+    const helpText = document.getElementById('help-text');
+    const previewOperation = document.getElementById('preview-operation');
+    const previewNew = document.getElementById('preview-new');
+    
+    function updatePreview() {
+        const type = movementType.value;
+        const quantity = parseFloat(quantityInput.value) || 0;
+        let newStock = currentStock;
+        let operation = '';
+        
+        if (type === 'IN') {
+            newStock = currentStock + quantity;
+            operation = '+' + quantity;
+            helpText.textContent = 'Ingrese la cantidad a agregar al stock';
+        } else if (type === 'OUT') {
+            newStock = Math.max(0, currentStock - quantity);
+            operation = '-' + quantity;
+            helpText.textContent = 'Ingrese la cantidad a quitar del stock';
+        } else if (type === 'ADJUSTMENT') {
+            newStock = quantity;
+            operation = '=' + quantity;
+            helpText.textContent = 'Ingrese el nuevo stock total';
+        }
+        
+        previewOperation.textContent = operation;
+        previewNew.textContent = newStock.toFixed(3);
+    }
+    
+    movementType.addEventListener('change', updatePreview);
+    quantityInput.addEventListener('input', updatePreview);
+    
+    updatePreview();
+</script>
+{% endblock %}

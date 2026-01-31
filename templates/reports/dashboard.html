@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard de Reportes{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-chart-bar"></i> Dashboard de Reportes</h1>
+        <form method="get" style="display: flex; gap: 10px;">
+            <select name="period" class="form-control" style="width: 200px;">
+                <option value="7" {% if period == '7' %}selected{% endif %}>Últimos 7 días</option>
+                <option value="30" {% if period == '30' %}selected{% endif %}>Últimos 30 días</option>
+                <option value="90" {% if period == '90' %}selected{% endif %}>Últimos 90 días</option>
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-sync"></i></button>
+        </form>
+    </div>
+    
+    <!-- KPIs -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+            <div style="opacity: 0.9; font-size: 0.9rem;">Total Ventas</div>
+            <div style="font-size: 2.5rem; font-weight: bold;">{{ total_sales }}</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 20px; border-radius: 10px;">
+            <div style="opacity: 0.9; font-size: 0.9rem;">Ingresos Totales</div>
+            <div style="font-size: 2.5rem; font-weight: bold;">${{ total_revenue|floatformat:0 }}</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; padding: 20px; border-radius: 10px;">
+            <div style="opacity: 0.9; font-size: 0.9rem;">Ticket Promedio</div>
+            <div style="font-size: 2.5rem; font-weight: bold;">${{ avg_ticket|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de ventas diarias -->
+    <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+        <h3><i class="fas fa-chart-line"></i> Ventas Diarias</h3>
+        <canvas id="dailySalesChart" height="80"></canvas>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- Métodos de pago -->
+        <div style="background: white; padding: 25px; border-radius: 10px;">
+            <h3><i class="fas fa-credit-card"></i> Por Método de Pago</h3>
+            <canvas id="paymentMethodsChart"></canvas>
+        </div>
+        
+        <!-- Top productos -->
+        <div style="background: white; padding: 25px; border-radius: 10px;">
+            <h3><i class="fas fa-trophy"></i> Top 5 Productos</h3>
+            <ol style="margin: 0; padding-left: 20px;">
+                {% for product in top_products|slice:":5" %}
+                <li style="margin: 10px 0; font-size: 1.1rem;">
+                    <strong>{{ product.product__name }}</strong>
+                    <div style="color: #28a745; font-weight: 600;">${{ product.total_revenue|floatformat:0 }}</div>
+                    <small style="color: #999;">{{ product.total_qty|floatformat:"-1" }} unidades vendidas</small>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de ventas diarias
+const dailyCtx = document.getElementById('dailySalesChart').getContext('2d');
+new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: {{ daily_labels_json|safe }},
+        datasets: [{
+            label: 'Ventas ($)',
+            data: {{ daily_sales_json|safe }},
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: true }
+});
+
+// Gráfico de métodos de pago
+const paymentData = {{ payment_methods_json|safe }};
+const paymentCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+new Chart(paymentCtx, {
+    type: 'doughnut',
+    data: {
+        labels: paymentData.labels,
+        datasets: [{
+            data: paymentData.data,
+            backgroundColor: ['#28a745', '#007bff', '#17a2b8', '#ffc107']
+        }]
+    }
+});
+</script>
+{% endblock %}

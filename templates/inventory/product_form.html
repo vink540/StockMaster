@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_update %}Editar{% else %}Nuevo{% endif %} Producto - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-{% if is_update %}edit{% else %}plus{% endif %}"></i>
+            {% if is_update %}Editar Producto{% else %}Nuevo Producto{% endif %}
+        </h1>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Información básica -->
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Información Básica</h3>
+                
+                <div class="form-group">
+                    <label for="barcode">
+                        <i class="fas fa-barcode"></i> Código de Barras *
+                    </label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" 
+                               name="barcode" 
+                               id="barcode" 
+                               class="form-control" 
+                               value="{% if product %}{{ product.barcode }}{% endif %}"
+                               placeholder="Ingrese o escanee el código"
+                               required
+                               style="flex: 1;">
+                        {% if system_config.enable_barcode_scanner %}
+                        <button type="button" 
+                                id="scanBarcodeBtn" 
+                                class="btn btn-primary"
+                                style="padding: 10px 20px; white-space: nowrap;">
+                            <i class="fas fa-camera"></i> Escanear
+                        </button>
+                        {% endif %}
+                    </div>
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> 
+                        {% if system_config.enable_barcode_scanner %}
+                        Puede escribir manualmente o usar la cámara para escanear
+                        {% else %}
+                        Ingrese el código de barras manualmente
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">
+                        <i class="fas fa-tag"></i> Nombre del Producto *
+                    </label>
+                    <input type="text" 
+                           name="name" 
+                           id="name" 
+                           class="form-control" 
+                           value="{% if product %}{{ product.name }}{% endif %}"
+                           required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">
+                        <i class="fas fa-align-left"></i> Descripción
+                    </label>
+                    <textarea name="description" 
+                              id="description" 
+                              class="form-control" 
+                              rows="3">{% if product %}{{ product.description }}{% endif %}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">
+                        <i class="fas fa-folder"></i> Categoría
+                    </label>
+                    <select name="category" id="category" class="form-control">
+                        <option value="">Sin categoría</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" 
+                                {% if product and product.category and product.category.id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        {% if system_config.enable_categories %}
+                        <a href="{% url 'inventory:category_create' %}" target="_blank" style="color: #667eea;">
+                            <i class="fas fa-plus"></i> Crear nueva categoría
+                        </a>
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Precios y stock -->
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Precios y Stock</h3>
+                
+                <div class="form-group">
+                    <label for="cost_price">
+                        <i class="fas fa-dollar-sign"></i> Precio de Costo *
+                    </label>
+                    <input type="number" 
+                           name="cost_price" 
+                           id="cost_price" 
+                           class="form-control" 
+                           value="{% if product %}{{ product.cost_price|floatformat:0 }}{% endif %}"
+                           required
+                           min="0"
+                           placeholder="Ejemplo: 1000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sale_price">
+                        <i class="fas fa-money-bill"></i> Precio de Venta *
+                    </label>
+                    <input type="number" 
+                           name="sale_price" 
+                           id="sale_price" 
+                           class="form-control" 
+                           value="{% if product %}{{ product.sale_price|floatformat:0 }}{% endif %}"
+                           required
+                           min="0"
+                           placeholder="Ejemplo: 1500">
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        <span id="margin"></span>
+                    </small>
+                </div>
+                
+                {% if is_update %}
+                <div class="form-group">
+                    <label for="price_change_reason">
+                        <i class="fas fa-comment"></i> Motivo del Cambio de Precio (opcional)
+                    </label>
+                    <input type="text" 
+                           name="price_change_reason" 
+                           id="price_change_reason" 
+                           class="form-control" 
+                           placeholder="Ej: Aumento del proveedor, Promoción, Ajuste por inflación"
+                           maxlength="200">
+                    <small style="color: #777; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> 
+                        Si cambias los precios, este motivo quedará registrado en el historial
+                    </small>
+                </div>
+                {% endif %}
+                
+                {% if not is_update %}
+                <div class="form-group">
+                    <label for="stock">
+                        <i class="fas fa-boxes"></i> Stock Inicial
+                    </label>
+                    <input type="number" 
+                           name="stock" 
+                           id="stock" 
+                           class="form-control" 
+                           value="0"
+                           min="0"
+                           placeholder="Ejemplo: 100">
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="min_stock">
+                        <i class="fas fa-exclamation-triangle"></i> Stock Mínimo
+                    </label>
+                    <input type="number" 
+                           name="min_stock" 
+                           id="min_stock" 
+                           class="form-control" 
+                           value="{% if product %}{{ product.min_stock|floatformat:0 }}{% else %}5{% endif %}"
+                           min="0"
+                           placeholder="Ejemplo: 10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiration_date">
+                        <i class="fas fa-calendar"></i> Fecha de Vencimiento
+                    </label>
+                    <input type="date" 
+                           name="expiration_date" 
+                           id="expiration_date" 
+                           class="form-control" 
+                           value="{% if product and product.expiration_date %}{{ product.expiration_date|date:'Y-m-d' }}{% endif %}">
+                </div>
+            </div>
+            
+            <!-- Imagen -->
+            <div>
+                <h3 style="margin-bottom: 15px; color: #555;">Imagen</h3>
+                
+                {% if product and product.image %}
+                <div style="margin-bottom: 20px;">
+                    <img src="{{ product.image.url }}" 
+                         alt="{{ product.name }}" 
+                         style="max-width: 100%; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="image">
+                        <i class="fas fa-image"></i> Subir Imagen
+                    </label>
+                    <input type="file" 
+                           name="image" 
+                           id="image" 
+                           class="form-control" 
+                           accept="image/*">
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> 
+                {% if is_update %}Guardar Cambios{% else %}Crear Producto{% endif %}
+            </button>
+            <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if system_config.enable_barcode_scanner %}
+<!-- Modal de Escáner de Código de Barras -->
+<div id="scannerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #333;">
+                <i class="fas fa-camera"></i> Escanear Código de Barras
+            </h2>
+            <button id="closeScannerBtn" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #999;">
+                &times;
+            </button>
+        </div>
+        
+        <div id="scanner-container" style="position: relative; width: 100%; height: 400px; background: #000; border-radius: 10px; overflow: hidden;">
+            <div id="interactive" class="viewport" style="width: 100%; height: 100%;"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 60%; border: 2px solid #00ff00; border-radius: 10px; pointer-events: none;"></div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center; color: #666;">
+            <p style="margin: 10px 0;">
+                <i class="fas fa-info-circle"></i> Coloque el código de barras dentro del recuadro verde
+            </p>
+            <p style="margin: 10px 0; font-size: 0.9rem;">
+                Soporta: EAN-13, EAN-8, Code 128, Code 39, UPC
+            </p>
+        </div>
+        
+        <div id="scanResult" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px; display: none;">
+            <strong>Código detectado:</strong> <span id="detectedCode" style="font-size: 1.2rem; color: #667eea;"></span>
+        </div>
+    </div>
+</div>
+
+<!-- QuaggaJS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
+<script>
+    let scannerActive = false;
+    
+    // Abrir modal de escáner
+    document.getElementById('scanBarcodeBtn').addEventListener('click', function() {
+        document.getElementById('scannerModal').style.display = 'flex';
+        startScanner();
+    });
+    
+    // Cerrar modal
+    document.getElementById('closeScannerBtn').addEventListener('click', function() {
+        stopScanner();
+        document.getElementById('scannerModal').style.display = 'none';
+        document.getElementById('scanResult').style.display = 'none';
+    });
+    
+    // Iniciar escáner
+    function startScanner() {
+        if (scannerActive) return;
+        
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#interactive'),
+                constraints: {
+                    width: 640,
+                    height: 480,
+                    facingMode: "environment"
+                },
+            },
+            decoder: {
+                readers: [
+                    "ean_reader",
+                    "ean_8_reader",
+                    "code_128_reader",
+                    "code_39_reader",
+                    "upc_reader"
+                ]
+            },
+            locate: true
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                alert('Error al acceder a la cámara. Por favor, verifica los permisos.');
+                return;
+            }
+            Quagga.start();
+            scannerActive = true;
+        });
+        
+        // Detectar código
+        Quagga.onDetected(function(result) {
+            const code = result.codeResult.code;
+            
+            // Mostrar código detectado
+            document.getElementById('detectedCode').textContent = code;
+            document.getElementById('scanResult').style.display = 'block';
+            
+            // Llenar el campo de código de barras
+            document.getElementById('barcode').value = code;
+            
+            // Cerrar escáner después de 1 segundo
+            setTimeout(function() {
+                stopScanner();
+                document.getElementById('scannerModal').style.display = 'none';
+                document.getElementById('scanResult').style.display = 'none';
+                
+                // Enfocar el campo de nombre para continuar llenando el formulario
+                document.getElementById('name').focus();
+            }, 1000);
+        });
+    }
+    
+    // Detener escáner
+    function stopScanner() {
+        if (!scannerActive) return;
+        Quagga.stop();
+        scannerActive = false;
+    }
+    
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('scannerModal').style.display === 'flex') {
+            stopScanner();
+            document.getElementById('scannerModal').style.display = 'none';
+            document.getElementById('scanResult').style.display = 'none';
+        }
+    });
+</script>
+{% endif %}
+
+<script>
+    // Calcular margen de ganancia
+    const costPrice = document.getElementById('cost_price');
+    const salePrice = document.getElementById('sale_price');
+    const marginDisplay = document.getElementById('margin');
+    
+    function calculateMargin() {
+        const cost = parseInt(costPrice.value) || 0;
+        const sale = parseInt(salePrice.value) || 0;
+        
+        if (cost > 0) {
+            const margin = ((sale - cost) / cost * 100).toFixed(2);
+            const profit = (sale - cost);
+            marginDisplay.textContent = `Margen: ${margin}% | Ganancia: $${profit}`;
+            marginDisplay.style.color = margin > 0 ? '#28a745' : '#dc3545';
+        } else {
+            marginDisplay.textContent = '';
+        }
+    }
+    
+    costPrice.addEventListener('input', calculateMargin);
+    salePrice.addEventListener('input', calculateMargin);
+    
+    // Calcular al cargar
+    calculateMargin();
+</script>
+{% endblock %}

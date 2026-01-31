@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Productos - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-file-upload"></i>
+            Importar Productos desde Excel
+        </h1>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <!-- Instrucciones -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+        <h3 style="margin: 0 0 15px 0; color: white;">
+            <i class="fas fa-info-circle"></i> Instrucciones
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; font-size: 0.95rem;">
+            <div>
+                <strong>1. Descarga la plantilla</strong>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">
+                    Usa el botón de abajo para descargar un archivo Excel con ejemplos
+                </p>
+            </div>
+            <div>
+                <strong>2. Completa tus datos</strong>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">
+                    Reemplaza los ejemplos con tus productos. ¡No modifiques los encabezados!
+                </p>
+            </div>
+            <div>
+                <strong>3. Sube el archivo</strong>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">
+                    Usa el formulario de abajo para importar los productos
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botón de plantilla -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <a href="{% url 'inventory:download_products_template' %}" 
+           class="btn btn-success" 
+           style="padding: 15px 30px; font-size: 1.1rem;">
+            <i class="fas fa-download"></i> Descargar Plantilla Excel
+        </a>
+        <p style="color: #777; margin-top: 10px;">
+            <i class="fas fa-file-excel"></i> Archivo .xlsx con formato correcto y ejemplos
+        </p>
+    </div>
+    
+    <hr style="margin: 30px 0; border: none; border-top: 2px solid #f0f0f0;">
+    
+    <!-- Formulario de carga -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="form-group">
+                <label for="excel_file" style="font-size: 1.1rem; font-weight: 600;">
+                    <i class="fas fa-file-excel"></i> Seleccionar Archivo Excel
+                </label>
+                <input type="file" 
+                       name="excel_file" 
+                       id="excel_file" 
+                       class="form-control" 
+                       accept=".xlsx"
+                       required
+                       style="padding: 15px; font-size: 1rem; border: 2px dashed #667eea;">
+                <small style="display: block; margin-top: 10px; color: #777;">
+                    <i class="fas fa-exclamation-circle"></i> Solo archivos .xlsx (Excel)
+                </small>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn btn-primary" style="padding: 15px 40px; font-size: 1.1rem;">
+                    <i class="fas fa-upload"></i> Importar Productos
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Información adicional -->
+    <div style="margin-top: 50px; padding: 25px; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">
+            <i class="fas fa-question-circle"></i> ¿Qué pasa al importar?
+        </h3>
+        <ul style="margin: 0; padding-left: 25px; line-height: 2;">
+            <li><strong>Productos nuevos:</strong> Se crean con el stock indicado en el Excel</li>
+            <li><strong>Productos existentes:</strong> Se actualizan los datos (se busca por código de barras)</li>
+            <li><strong>Categorías nuevas:</strong> Se crean automáticamente si no existen</li>
+            <li><strong>Errores:</strong> Se muestran al finalizar para que puedas corregirlos</li>
+        </ul>
+    </div>
+    
+    <!-- Formato esperado -->
+    <div style="margin-top: 30px; padding: 25px; background: #fff3cd; border-radius: 10px; border-left: 5px solid #ffc107;">
+        <h3 style="margin: 0 0 15px 0; color: #856404;">
+            <i class="fas fa-table"></i> Formato del Excel
+        </h3>
+        <div style="overflow-x: auto;">
+            <table class="table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th>Código de Barras</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Precio Costo</th>
+                        <th>Precio Venta</th>
+                        <th>Stock</th>
+                        <th>Stock Mínimo</th>
+                        <th>Fecha Vencimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>7791234567890</code></td>
+                        <td>Coca Cola 2L</td>
+                        <td>Gaseosa sabor cola</td>
+                        <td>Bebidas</td>
+                        <td>500</td>
+                        <td>800</td>
+                        <td>50</td>
+                        <td>10</td>
+                        <td>2026-12-31</td>
+                    </tr>
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #777; font-style: italic;">
+                            <i class="fas fa-info-circle"></i> Fecha formato: AAAA-MM-DD (opcional)
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="margin: 15px 0 0 0; color: #856404;">
+            <strong>⚠️ Importante:</strong> 
+            No modifiques los encabezados de la plantilla. 
+            Los campos <strong>Código de Barras</strong> y <strong>Nombre</strong> son obligatorios.
+        </p>
+    </div>
+</div>
+{% endblock %}

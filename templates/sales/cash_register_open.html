@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Abrir Caja - StockMaster{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-cash-register"></i> Abrir Caja</h1>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="opening_amount"><i class="fas fa-dollar-sign"></i> Monto Inicial de Efectivo *</label>
+            <input type="number" name="opening_amount" id="opening_amount" class="form-control" 
+                   step="0.01" min="0" required placeholder="Ej: 5000">
+            <small style="color: #777;">¿Cuánto efectivo hay en la caja al iniciar el día?</small>
+        </div>
+        <div class="form-group">
+            <label for="notes"><i class="fas fa-comment"></i> Notas (opcional)</label>
+            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                      placeholder="Ej: Billetes: 5x1000, 10x500, Monedas: 20x100"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" style="font-size: 1.2rem; padding: 15px 30px;">
+            <i class="fas fa-unlock"></i> Abrir Caja
+        </button>
+    </form>
+</div>
+{% endblock %}

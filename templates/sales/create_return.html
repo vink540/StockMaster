@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Devolución - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-undo"></i>
+            Nueva Devolución
+        </h1>
+        <a href="{% url 'sales:sale_detail' sale.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <!-- Info de la venta -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #333;">
+            <i class="fas fa-receipt"></i> Información de la Venta
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div>
+                <strong>ID Venta:</strong> #{{ sale.id }}
+            </div>
+            <div>
+                <strong>Fecha:</strong> {{ sale.created_at|date:"d/m/Y H:i" }}
+            </div>
+            {% if sale.customer %}
+            <div>
+                <strong>Cliente:</strong> {{ sale.customer.name }}
+            </div>
+            {% endif %}
+            <div>
+                <strong>Total Original:</strong> ${{ sale.total|floatformat:2 }}
+            </div>
+            <div>
+                <strong>Método Pago:</strong> {{ sale.get_payment_method_display }}
+            </div>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Productos a devolver -->
+        <h3 style="margin-bottom: 20px; color: #333;">
+            <i class="fas fa-box-open"></i> Selecciona los Productos a Devolver
+        </h3>
+        
+        <div style="overflow-x: auto; margin-bottom: 30px;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad Comprada</th>
+                        <th>Ya Devuelto</th>
+                        <th>Disponible para Devolver</th>
+                        <th>Precio Unit.</th>
+                        <th>Cantidad a Devolver</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTable">
+                    {% for data in items_with_returns %}
+                    {% if data.max_returnable > 0 %}
+                    <tr>
+                        <td>
+                            <strong>{{ data.item.product.name }}</strong>
+                            <br>
+                            <small style="color: #999;">{{ data.item.product.barcode }}</small>
+                        </td>
+                        <td>{{ data.item.quantity|floatformat:"-3" }}</td>
+                        <td>
+                            {% if data.already_returned > 0 %}
+                            <span class="badge badge-warning">{{ data.already_returned|floatformat:"-3" }}</span>
+                            {% else %}
+                            <span style="color: #999;">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-success">{{ data.max_returnable|floatformat:"-3" }}</span>
+                        </td>
+                        <td>${{ data.item.price|floatformat:2 }}</td>
+                        <td>
+                            <input type="number" 
+                                   name="return_qty_{{ data.item.id }}" 
+                                   class="form-control return-qty-input" 
+                                   min="0" 
+                                   max="{{ data.max_returnable }}" 
+                                   step="0.001"
+                                   value="0"
+                                   data-price="{{ data.item.price }}"
+                                   style="width: 120px;">
+                        </td>
+                        <td>
+                            <strong class="subtotal-display">$0.00</strong>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #999;">
+                            Todos los productos ya fueron devueltos
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8f9fa; font-weight: bold;">
+                        <td colspan="6" style="text-align: right; padding-right: 20px;">
+                            TOTAL A REINTEGRAR:
+                        </td>
+                        <td>
+                            <span id="totalAmount" style="font-size: 1.3rem; color: #dc3545;">$0.00</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Motivo de devolución -->
+        <div class="form-group">
+            <label for="reason">
+                <i class="fas fa-comment"></i> Motivo de la Devolución *
+            </label>
+            <textarea name="reason" 
+                      id="reason" 
+                      class="form-control" 
+                      rows="3" 
+                      required 
+                      placeholder="Ej: Producto defectuoso, Cliente insatisfecho, Error en la venta, etc."></textarea>
+        </div>
+        
+        <!-- Método de reintegro -->
+        <div class="form-group">
+            <label for="refund_method">
+                <i class="fas fa-money-bill"></i> Método de Reintegro *
+            </label>
+            <select name="refund_method" id="refund_method" class="form-control" required>
+                <option value="CASH">Efectivo</option>
+                <option value="CREDIT">Crédito en cuenta del cliente</option>
+                <option value="EXCHANGE">Cambio por otro producto</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-danger" id="submitBtn" disabled>
+                <i class="fas fa-undo"></i> Procesar Devolución
+            </button>
+            <a href="{% url 'sales:sale_detail' sale.id %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Calcular totales en tiempo real
+    const inputs = document.querySelectorAll('.return-qty-input');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', calculateTotals);
+    });
+    
+    function calculateTotals() {
+        let total = 0;
+        let hasItems = false;
+        
+        inputs.forEach(input => {
+            const qty = parseFloat(input.value) || 0;
+            const price = parseFloat(input.dataset.price) || 0;
+            const subtotal = qty * price;
+            
+            // Actualizar subtotal del item
+            const row = input.closest('tr');
+            const subtotalDisplay = row.querySelector('.subtotal-display');
+            subtotalDisplay.textContent = '$' + subtotal.toFixed(2);
+            
+            total += subtotal;
+            
+            if (qty > 0) {
+                hasItems = true;
+            }
+        });
+        
+        // Actualizar total
+        document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+        
+        // Habilitar/deshabilitar botón
+        submitBtn.disabled = !hasItems;
+    }
+    
+    // Inicializar
+    calculateTotals();
+</script>
+{% endblock %}

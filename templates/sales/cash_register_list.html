@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Historial de Cajas{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-history"></i> Historial de Cajas</h1>
+        <a href="{% url 'sales:cash_register_current' %}" class="btn btn-primary">
+            <i class="fas fa-cash-register"></i> Caja Actual
+        </a>
+    </div>
+    {% if cash_registers %}
+    <table class="table">
+        <thead>
+            <tr><th>Fecha</th><th>Usuario</th><th>Estado</th><th>Efectivo Inicial</th><th>Efectivo Final</th><th>Diferencia</th><th>Total Ventas</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for cr in cash_registers %}
+            <tr>
+                <td>{{ cr.opened_at|date:"d/m/Y H:i" }}</td>
+                <td>{{ cr.user.username }}</td>
+                <td><span class="badge badge-{% if cr.status == 'OPEN' %}success{% else %}secondary{% endif %}">{{ cr.get_status_display }}</span></td>
+                <td>${{ cr.opening_amount|floatformat:2 }}</td>
+                <td>{% if cr.status == 'CLOSED' %}${{ cr.closing_amount|floatformat:2 }}{% else %}-{% endif %}</td>
+                <td>
+                    {% if cr.status == 'CLOSED' %}
+                        <span style="color: {% if cr.difference == 0 %}#28a745{% elif cr.difference > 0 %}#ffc107{% else %}#dc3545{% endif %}; font-weight: bold;">
+                            {% if cr.difference > 0 %}+{% endif %}${{ cr.difference|floatformat:2 }}
+                        </span>
+                    {% else %}-{% endif %}
+                </td>
+                <td>${{ cr.total_sales|floatformat:2 }}</td>
+                <td><a href="{% url 'sales:cash_register_detail' cr.id %}" class="btn btn-secondary" style="padding: 5px 10px;"><i class="fas fa-eye"></i></a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; padding: 50px; color: #999;">No hay cajas registradas</p>
+    {% endif %}
+</div>
+{% endblock %}

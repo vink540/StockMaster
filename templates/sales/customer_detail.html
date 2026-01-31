@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ customer.name }} - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-user"></i>
+            {{ customer.name }}
+        </h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'sales:customer_update' customer.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+        <!-- Info del cliente -->
+        <div>
+            <h3 style="margin-bottom: 15px; color: #555;">Información del Cliente</h3>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <small style="color: #777;">Teléfono</small>
+                <div style="font-weight: 600; margin-top: 5px;">
+                    {% if customer.phone %}
+                    <i class="fas fa-phone"></i> {{ customer.phone }}
+                    {% else %}
+                    <span style="color: #999;">No configurado</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <small style="color: #777;">Email</small>
+                <div style="font-weight: 600; margin-top: 5px;">
+                    {% if customer.email %}
+                    <i class="fas fa-envelope"></i> {{ customer.email }}
+                    {% else %}
+                    <span style="color: #999;">No configurado</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <small style="color: #777;">Dirección</small>
+                <div style="margin-top: 5px;">
+                    {% if customer.address %}
+                    <i class="fas fa-map-marker-alt"></i> {{ customer.address }}
+                    {% else %}
+                    <span style="color: #999;">No configurada</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Estado de crédito -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                <small style="opacity: 0.9;">Límite de Crédito</small>
+                <div style="font-size: 1.8rem; font-weight: bold; margin-top: 5px;">
+                    ${{ customer.credit_limit|floatformat:2 }}
+                </div>
+            </div>
+            
+            <div style="background: {% if customer.total_debt > 0 %}#fff3cd{% else %}#d4edda{% endif %}; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid {% if customer.total_debt > 0 %}#ffc107{% else %}#28a745{% endif %};">
+                <small style="color: {% if customer.total_debt > 0 %}#856404{% else %}#155724{% endif %};">Deuda Actual</small>
+                <div style="font-size: 1.8rem; font-weight: bold; margin-top: 5px; color: {% if customer.total_debt > 0 %}#856404{% else %}#155724{% endif %};">
+                    ${{ customer.total_debt|floatformat:2 }}
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <small style="color: #777;">Crédito Disponible</small>
+                <div style="font-size: 1.8rem; font-weight: bold; margin-top: 5px; color: {% if customer.available_credit > 0 %}#28a745{% else %}#dc3545{% endif %};">
+                    ${{ customer.available_credit|floatformat:2 }}
+                </div>
+            </div>
+            
+            {% if customer.notes %}
+            <div style="background: #e8f4fc; padding: 15px; border-radius: 10px; margin-top: 15px; border-left: 4px solid #17a2b8;">
+                <small style="color: #0c5460; font-weight: 600;">Notas</small>
+                <p style="color: #0c5460; margin: 10px 0 0 0;">{{ customer.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Ventas del cliente -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #555;">Historial de Ventas</h3>
+                {% if pending_sales %}
+                <span class="badge badge-warning" style="font-size: 1rem; padding: 8px 15px;">
+                    {{ pending_sales.count }} pendiente(s)
+                </span>
+                {% endif %}
+            </div>
+            
+            {% if sales %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'sales:sale_detail' sale.id %}" 
+                               style="text-decoration: none; color: #667eea; font-weight: 600;">
+                                #{{ sale.id }}
+                            </a>
+                        </td>
+                        <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                        <td style="font-weight: 600;">${{ sale.total|floatformat:2 }}</td>
+                        <td>
+                            {% if sale.is_paid %}
+                            <span class="badge badge-success">Pagado</span>
+                            {% else %}
+                            <span class="badge badge-warning">
+                                Pendiente: ${{ sale.pending_amount|floatformat:2 }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{% url 'sales:sale_detail' sale.id %}" 
+                                   class="btn btn-primary" 
+                                   style="padding: 5px 10px; font-size: 0.9rem;">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not sale.is_paid %}
+                                <a href="{% url 'sales:add_payment' sale.id %}" 
+                                   class="btn btn-success" 
+                                   style="padding: 5px 10px; font-size: 0.9rem;">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 50px; color: #999;">
+                <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                <p>No hay ventas registradas para este cliente.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

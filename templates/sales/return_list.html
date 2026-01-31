@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Devoluciones - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-undo"></i>
+            Historial de Devoluciones
+        </h1>
+        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Ventas
+        </a>
+    </div>
+    
+    <!-- Filtros -->
+    <form method="get" style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 15px;">
+            <input type="text" 
+                   name="search" 
+                   class="form-control" 
+                   placeholder="Buscar por ID de venta o motivo..."
+                   value="{{ search }}"
+                   style="flex: 1;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+        </div>
+    </form>
+    
+    {% if returns %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Venta</th>
+                    <th>Tipo</th>
+                    <th>Monto</th>
+                    <th>Método Reintegro</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for return_obj in returns %}
+                <tr>
+                    <td>
+                        <strong>#{{ return_obj.id }}</strong>
+                    </td>
+                    <td style="white-space: nowrap;">
+                        {{ return_obj.created_at|date:"d/m/Y H:i" }}
+                    </td>
+                    <td>
+                        <a href="{% url 'sales:sale_detail' return_obj.sale.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            Venta #{{ return_obj.sale.id }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if return_obj.return_type == 'TOTAL' %}
+                        <span class="badge badge-danger">Total</span>
+                        {% else %}
+                        <span class="badge badge-warning">Parcial</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600; color: #dc3545;">
+                        ${{ return_obj.total_amount|floatformat:2 }}
+                    </td>
+                    <td>
+                        <span class="badge badge-info">
+                            {{ return_obj.get_refund_method_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <i class="fas fa-user"></i>
+                        {{ return_obj.created_by.username|default:"Sistema" }}
+                    </td>
+                    <td>
+                        <a href="{% url 'sales:return_detail' return_obj.id %}" 
+                           class="btn btn-secondary" 
+                           style="padding: 5px 10px; font-size: 0.85rem;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px;">
+        <i class="fas fa-undo" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+        <h3 style="color: #999;">No hay devoluciones registradas</h3>
+        <p style="color: #999;">Las devoluciones aparecerán aquí cuando proceses la primera.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

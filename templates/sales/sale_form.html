@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Venta - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-shopping-cart"></i>
+            Nueva Venta
+        </h1>
+        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <form method="post" id="saleForm">
+        {% csrf_token %}
+        
+        <!-- Método de pago y cliente -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div class="form-group">
+                <label for="payment_method">
+                    <i class="fas fa-credit-card"></i> Método de Pago *
+                </label>
+                <select name="payment_method" id="payment_method" class="form-control" required>
+                    <option value="CASH">Efectivo</option>
+                    <option value="CARD">Tarjeta</option>
+                    <option value="TRANSFER">Transferencia</option>
+                    <option value="CREDIT">Fiado</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="customerGroup" style="display: none;">
+                <label for="customer">
+                    <i class="fas fa-user"></i> Cliente *
+                </label>
+                <select name="customer" id="customer" class="form-control">
+                    <option value="">Seleccionar cliente...</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}" 
+                            data-credit-limit="{{ c.credit_limit }}" 
+                            data-total-debt="{{ c.total_debt }}">
+                        {{ c.name }} - Disponible: ${{ c.available_credit|floatformat:0 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small style="color: #777; display: block; margin-top: 5px;">
+                    <a href="{% url 'sales:customer_create' %}" target="_blank" style="color: #667eea;">
+                        <i class="fas fa-plus"></i> Crear nuevo cliente
+                    </a>
+                </small>
+            </div>
+        </div>
+        
+        <!-- Productos -->
+        <div style="margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: #555;">
+                    <i class="fas fa-boxes"></i> Productos
+                </h3>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" onclick="addProductRow()">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="addManualProduct()">
+                        <i class="fas fa-keyboard"></i> Producto Manual
+                    </button>
+                </div>
+            </div>
+            
+            <div id="productsContainer">
+                <!-- Los productos se agregan aquí dinámicamente -->
+            </div>
+            
+            <div style="text-align: center; padding: 30px; color: #999;" id="emptyMessage">
+                <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 10px; display: block;"></i>
+                <p>Haz clic en "Agregar Producto" para empezar</p>
+            </div>
+        </div>
+        
+        <!-- Totales -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin-left: auto;">
+                <div>
+                    <label for="discount">
+                        <i class="fas fa-percentage"></i> Descuento
+                    </label>
+                    <input type="number" 
+                           name="discount" 
+                           id="discount" 
+                           class="form-control" 
+                           value="0" 
+                           min="0">
+                </div>
+                
+                <div>
+                    <label style="margin-bottom: 8px; display: block;">Subtotal</label>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #333;">
+                        $<span id="subtotal">0</span>
+                    </div>
+                </div>
+                
+                <div style="grid-column: 2;">
+                    <label style="margin-bottom: 8px; display: block;">Total</label>
+                    <div style="font-size: 2rem; font-weight: bold; color: #667eea;">
+                        $<span id="total">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notas -->
+        <div class="form-group">
+            <label for="notes">
+                <i class="fas fa-sticky-note"></i> Notas (opcional)
+            </label>
+            <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+        </div>
+        
+        <!-- Botones -->
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" class="btn btn-success" id="submitBtn">
+                <i class="fas fa-check"></i> Registrar Venta
+            </button>
+            <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Template para fila de producto -->
+<template id="productRowTemplate">
+    <div class="product-row" style="background: white; border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: center;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <select class="form-control product-select" name="product_id[]" required>
+                    <option value="">Seleccionar producto...</option>
+                    {% for p in products %}
+                    <option value="{{ p.id }}" 
+                            data-price="{{ p.sale_price|floatformat:0 }}" 
+                            data-stock="{{ p.stock|floatformat:0 }}">
+                        {{ p.name }} (Stock: {{ p.stock|floatformat:0 }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="number" 
+                       class="form-control quantity-input" 
+                       name="quantity[]" 
+                       placeholder="Cantidad"
+                       value="1" 
+                       min="1"
+                       required>
+            </div>
+            
+            <div style="text-align: center;">
+                <small style="color: #777;">Precio</small>
+                <div style="font-weight: 600;" class="unit-price">$0</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <small style="color: #777;">Subtotal</small>
+                <div style="font-weight: 600; color: #667eea; font-size: 1.1rem;" class="row-subtotal">$0</div>
+            </div>
+            
+            <button type="button" class="btn btn-danger" onclick="removeProductRow(this)" style="padding: 10px 15px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+
+<!-- Template para producto manual -->
+<template id="manualProductTemplate">
+    <div class="product-row manual-product" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: center;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" 
+                       class="form-control manual-product-name" 
+                       name="manual_product_name[]" 
+                       placeholder="Ej: Tomate x kg"
+                       required>
+                <input type="hidden" name="product_id[]" value="">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="number" 
+                       class="form-control manual-quantity" 
+                       name="quantity[]" 
+                       placeholder="Cantidad/Peso"
+                       value="1" 
+                       min="1"
+                       required>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="number" 
+                       class="form-control manual-price" 
+                       name="manual_price[]" 
+                       placeholder="Precio unitario"
+                       value="0" 
+                       min="0"
+                       required>
+            </div>
+            
+            <div style="text-align: center;">
+                <small style="color: #777;">Subtotal</small>
+                <div style="font-weight: 600; color: #667eea; font-size: 1.1rem;" class="row-subtotal">$0</div>
+            </div>
+            
+            <button type="button" class="btn btn-danger" onclick="removeProductRow(this)" style="padding: 10px 15px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+
+<script>
+    let productCount = 0;
+    
+    // Mostrar/ocultar campo de cliente según método de pago
+    document.getElementById('payment_method').addEventListener('change', function() {
+        const customerGroup = document.getElementById('customerGroup');
+        const customerSelect = document.getElementById('customer');
+        
+        if (this.value === 'CREDIT') {
+            customerGroup.style.display = 'block';
+            customerSelect.required = true;
+        } else {
+            customerGroup.style.display = 'none';
+            customerSelect.required = false;
+        }
+    });
+    
+    // Agregar fila de producto
+    function addProductRow() {
+        const template = document.getElementById('productRowTemplate');
+        const clone = template.content.cloneNode(true);
+        const container = document.getElementById('productsContainer');
+        
+        container.appendChild(clone);
+        document.getElementById('emptyMessage').style.display = 'none';
+        
+        // Agregar eventos a los nuevos elementos
+        const rows = container.querySelectorAll('.product-row');
+        const lastRow = rows[rows.length - 1];
+        
+        const select = lastRow.querySelector('.product-select');
+        const quantityInput = lastRow.querySelector('.quantity-input');
+        
+        if (select) select.addEventListener('change', updateRowSubtotal);
+        if (quantityInput) quantityInput.addEventListener('input', updateRowSubtotal);
+        
+        productCount++;
+    }
+    
+    // Agregar producto manual
+    function addManualProduct() {
+        const template = document.getElementById('manualProductTemplate');
+        const clone = template.content.cloneNode(true);
+        const container = document.getElementById('productsContainer');
+        
+        container.appendChild(clone);
+        document.getElementById('emptyMessage').style.display = 'none';
+        
+        // Agregar eventos a los nuevos elementos
+        const rows = container.querySelectorAll('.product-row');
+        const lastRow = rows[rows.length - 1];
+        
+        const quantityInput = lastRow.querySelector('.manual-quantity');
+        const priceInput = lastRow.querySelector('.manual-price');
+        
+        if (quantityInput) quantityInput.addEventListener('input', updateManualRowSubtotal);
+        if (priceInput) priceInput.addEventListener('input', updateManualRowSubtotal);
+        
+        productCount++;
+    }
+    
+    // Eliminar fila de producto
+    function removeProductRow(btn) {
+        const row = btn.closest('.product-row');
+        row.remove();
+        
+        const container = document.getElementById('productsContainer');
+        if (container.children.length === 0) {
+            document.getElementById('emptyMessage').style.display = 'block';
+        }
+        
+        calculateTotal();
+    }
+    
+    // Actualizar subtotal de fila
+    function updateRowSubtotal(event) {
+        const row = event.target.closest('.product-row');
+        if (row.classList.contains('manual-product')) return;
+        
+        const select = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const unitPriceDiv = row.querySelector('.unit-price');
+        const subtotalDiv = row.querySelector('.row-subtotal');
+        
+        const selectedOption = select.options[select.selectedIndex];
+        const price = parseInt(selectedOption.dataset.price) || 0;
+        const stock = parseInt(selectedOption.dataset.stock) || 0;
+        const quantity = parseInt(quantityInput.value) || 0;
+        
+        // Validar stock
+        if (quantity > stock) {
+            alert(`Stock insuficiente. Disponible: ${stock}`);
+            quantityInput.value = stock;
+            return;
+        }
+        
+        const subtotal = price * quantity;
+        
+        unitPriceDiv.textContent = `$${price}`;
+        subtotalDiv.textContent = `$${subtotal}`;
+        
+        calculateTotal();
+    }
+    
+    // Actualizar subtotal de producto manual
+    function updateManualRowSubtotal(event) {
+        const row = event.target.closest('.product-row');
+        const quantityInput = row.querySelector('.manual-quantity');
+        const priceInput = row.querySelector('.manual-price');
+        const subtotalDiv = row.querySelector('.row-subtotal');
+        
+        const quantity = parseInt(quantityInput.value) || 0;
+        const price = parseInt(priceInput.value) || 0;
+        const subtotal = quantity * price;
+        
+        subtotalDiv.textContent = `$${subtotal}`;
+        
+        calculateTotal();
+    }
+    
+    // Calcular total
+    function calculateTotal() {
+        const rows = document.querySelectorAll('.product-row');
+        let subtotal = 0;
+        
+        rows.forEach(row => {
+            if (row.classList.contains('manual-product')) {
+                const quantity = parseInt(row.querySelector('.manual-quantity').value) || 0;
+                const price = parseInt(row.querySelector('.manual-price').value) || 0;
+                subtotal += quantity * price;
+            } else {
+                const select = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity-input');
+                const selectedOption = select.options[select.selectedIndex];
+                const price = parseInt(selectedOption.dataset.price) || 0;
+                const quantity = parseInt(quantityInput.value) || 0;
+                
+                subtotal += price * quantity;
+            }
+        });
+        
+        const discount = parseInt(document.getElementById('discount').value) || 0;
+        const total = subtotal - discount;
+        
+        document.getElementById('subtotal').textContent = subtotal;
+        document.getElementById('total').textContent = total;
+    }
+    
+    // Calcular al cambiar descuento
+    document.getElementById('discount').addEventListener('input', calculateTotal);
+    
+    // Validar antes de enviar
+    document.getElementById('saleForm').addEventListener('submit', function(e) {
+        const rows = document.querySelectorAll('.product-row');
+        
+        if (rows.length === 0) {
+            e.preventDefault();
+            alert('Debes agregar al menos un producto.');
+            return;
+        }
+        
+        // Validar cliente si es fiado
+        const paymentMethod = document.getElementById('payment_method').value;
+        if (paymentMethod === 'CREDIT') {
+            const customer = document.getElementById('customer');
+            if (!customer.value) {
+                e.preventDefault();
+                alert('Debes seleccionar un cliente para ventas fiadas.');
+                return;
+            }
+            
+            // Validar límite de crédito
+            const selectedOption = customer.options[customer.selectedIndex];
+            const creditLimit = parseInt(selectedOption.dataset.creditLimit);
+            const totalDebt = parseInt(selectedOption.dataset.totalDebt);
+            const total = parseInt(document.getElementById('total').textContent);
+            
+            if (totalDebt + total > creditLimit) {
+                e.preventDefault();
+                alert('El cliente ha excedido su límite de crédito.');
+                return;
+            }
+        }
+        
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    });
+    
+    // Agregar primera fila al cargar
+    addProductRow();
+</script>
+{% endblock %}

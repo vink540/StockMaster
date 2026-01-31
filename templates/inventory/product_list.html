@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load inventory_filters %}
+
+{% block title %}Productos - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-boxes"></i>
+            Productos
+        </h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'inventory:export_products_excel' %}" class="btn btn-success">
+                <i class="fas fa-file-download"></i> Exportar Excel
+            </a>
+            <a href="{% url 'inventory:import_products_excel' %}" class="btn btn-info">
+                <i class="fas fa-file-upload"></i> Importar Excel
+            </a>
+            <a href="{% url 'inventory:product_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <form method="get" style="margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Buscar por nombre o código..."
+                       value="{{ search }}">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="category" class="form-control">
+                    <option value="">Todas las categorías</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <select name="stock" class="form-control">
+                    <option value="">Todo el stock</option>
+                    <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Stock bajo</option>
+                    <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Sin stock</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </div>
+    </form>
+    
+    <!-- Tabla de productos -->
+    {% if products %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <code style="background: #f0f0f0; padding: 5px 10px; border-radius: 5px; font-weight: 600;">
+                            {{ product.barcode }}
+                        </code>
+                    </td>
+                    <td>
+                        <a href="{% url 'inventory:product_detail' product.id %}" 
+                           style="text-decoration: none; color: #667eea; font-weight: 600;">
+                            {{ product.name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if product.category %}
+                        <span class="badge badge-info">{{ product.category.name }}</span>
+                        {% else %}
+                        <span style="color: #999;">Sin categoría</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">${{ product.sale_price|floatformat:2 }}</td>
+                    <td>
+                        {% if product.stock == 0 %}
+                        <span class="badge badge-danger">{{ product.stock|floatformat:"-3" }}</span>
+                        {% elif product.is_low_stock %}
+                        <span class="badge badge-warning">{{ product.stock|floatformat:"-3" }}</span>
+                        {% else %}
+                        <span class="badge badge-success">{{ product.stock|floatformat:"-3" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.is_expired %}
+                        <span class="badge badge-danger">
+                            <i class="fas fa-times-circle"></i> Vencido
+                        </span>
+                        {% elif product.is_expiring_soon %}
+                        <span class="badge badge-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Por vencer
+                        </span>
+                        {% elif product.is_low_stock %}
+                        <span class="badge badge-warning">
+                            <i class="fas fa-arrow-down"></i> Stock bajo
+                        </span>
+                        {% else %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle"></i> OK
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{% url 'inventory:product_update' product.id %}" 
+                               class="btn btn-secondary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;"
+                               title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'inventory:adjust_stock' product.id %}" 
+                               class="btn btn-primary" 
+                               style="padding: 5px 10px; font-size: 0.9rem;"
+                               title="Ajustar stock">
+                                <i class="fas fa-boxes"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px; color: #999;">
+        <i class="fas fa-inbox" style="font-size: 4rem; margin-bottom: 20px; display: block;"></i>
+        <h3>No hay productos</h3>
+        <p>Comienza agregando tu primer producto o importa desde Excel.</p>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+            <a href="{% url 'inventory:product_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Agregar Producto
+            </a>
+            <a href="{% url 'inventory:import_products_excel' %}" class="btn btn-info">
+                <i class="fas fa-file-upload"></i> Importar Excel
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

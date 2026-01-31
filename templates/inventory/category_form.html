@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_update %}Editar{% else %}Nueva{% endif %} Categoría - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-{% if is_update %}edit{% else %}plus{% endif %}"></i>
+            {% if is_update %}Editar Categoría{% else %}Nueva Categoría{% endif %}
+        </h1>
+        <a href="{% url 'inventory:category_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="name">
+                <i class="fas fa-tag"></i> Nombre de la Categoría *
+            </label>
+            <input type="text" 
+                   name="name" 
+                   id="name" 
+                   class="form-control" 
+                   value="{% if category %}{{ category.name }}{% endif %}"
+                   required
+                   placeholder="Ej: Bebidas, Snacks, Lácteos...">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">
+                <i class="fas fa-align-left"></i> Descripción
+            </label>
+            <textarea name="description" 
+                      id="description" 
+                      class="form-control" 
+                      rows="4"
+                      placeholder="Descripción opcional de la categoría...">{% if category %}{{ category.description }}{% endif %}</textarea>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> 
+                {% if is_update %}Guardar Cambios{% else %}Crear Categoría{% endif %}
+            </button>
+            <a href="{% url 'inventory:category_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
