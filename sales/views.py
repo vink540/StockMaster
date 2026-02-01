@@ -65,7 +65,7 @@ def sale_detail(request, pk):
 
 @login_required
 def sale_create(request):
-    """Crear nueva venta"""
+    """Crear nueva venta con soporte para productos por peso"""
     company = request.user.company
     
     if request.method == 'POST':
@@ -92,7 +92,7 @@ def sale_create(request):
             
             # Crear la venta
             sale = Sale.objects.create(
-                company=company,  # ← FILTRO POR EMPRESA
+                company=company,
                 customer=customer,
                 payment_method=payment_method,
                 discount=discount,
@@ -101,22 +101,18 @@ def sale_create(request):
                 created_by=request.user
             )
             
-            # Procesar items
+            # Procesar items del catálogo
             product_ids = request.POST.getlist('product_id[]')
             quantities = request.POST.getlist('quantity[]')
-            manual_names = request.POST.getlist('manual_product_name[]')
-            manual_prices = request.POST.getlist('manual_price[]')
             
             if not product_ids:
                 sale.delete()
                 messages.error(request, 'Debe agregar al menos un producto.')
                 return redirect('sales:sale_create')
             
-            manual_index = 0
             for i, product_id in enumerate(product_ids):
-                quantity = Decimal(str(quantities[i]))
-                
                 if product_id:  # Producto del catálogo
+                    quantity = Decimal(str(quantities[i]))
                     product = get_object_or_404(Product, pk=product_id, company=company)
                     
                     # Verificar stock
@@ -148,33 +144,59 @@ def sale_create(request):
                         reason=f'Venta #{sale.id}',
                         created_by=request.user
                     )
-                else:  # Producto manual
-                    if manual_index < len(manual_names):
-                        manual_name = manual_names[manual_index]
-                        manual_price = Decimal(str(manual_prices[manual_index]))
+            
+            # ✅ Procesar productos manuales (CON SOPORTE PARA PESO)
+            manual_names = request.POST.getlist('manual_product_name[]')
+            manual_prices = request.POST.getlist('manual_price[]')
+            manual_weights = request.POST.getlist('manual_weight[]')
+            manual_weight_units = request.POST.getlist('manual_weight_unit[]')
+            
+            manual_index = 0
+            for i in range(len(manual_names)):
+                if manual_names[i].strip():  # Si hay nombre
+                    manual_name = manual_names[i].strip()
+                    manual_price = Decimal(str(manual_prices[i])) if manual_prices[i] else Decimal('0')
+                    
+                    # Determinar cantidad según tipo de venta
+                    if i < len(manual_weights) and manual_weights[i]:
+                        # Venta por peso
+                        weight_value = Decimal(str(manual_weights[i]))
+                        weight_unit = manual_weight_units[i] if i < len(manual_weight_units) else 'kg'
                         
-                        # Crear producto temporal para el registro
-                        temp_product = Product.objects.create(
-                            company=company,  # ← FILTRO POR EMPRESA
-                            barcode=f'MANUAL-{sale.id}-{manual_index}',
-                            name=manual_name,
-                            cost_price=Decimal('0'),
-                            sale_price=manual_price,
-                            stock=Decimal('0'),
-                            min_stock=Decimal('0'),
-                            is_active=False,  # No aparecerá en el inventario
-                            created_by=request.user
-                        )
+                        # Convertir a kg si es en gramos
+                        if weight_unit == 'g':
+                            quantity = weight_value / 1000  # Convertir gramos a kg
+                        else:
+                            quantity = weight_value
                         
-                        # Crear item de venta
-                        SaleItem.objects.create(
-                            sale=sale,
-                            product=temp_product,
-                            quantity=quantity,
-                            unit_price=manual_price
-                        )
-                        
-                        manual_index += 1
+                        # Actualizar nombre para mostrar el peso
+                        manual_name = f"{manual_name} ({weight_value} {weight_unit})"
+                    else:
+                        # Venta por unidad
+                        quantity = Decimal('1')
+                    
+                    # Crear producto temporal
+                    temp_product = Product.objects.create(
+                        company=company,
+                        barcode=f'MANUAL-{sale.id}-{manual_index}',
+                        name=manual_name,
+                        cost_price=Decimal('0'),
+                        sale_price=manual_price,
+                        stock=Decimal('0'),
+                        min_stock=Decimal('0'),
+                        is_active=False,  # No aparecerá en el inventario
+                        created_by=request.user
+                    )
+                    
+                    # Crear item de venta
+                    SaleItem.objects.create(
+                        sale=sale,
+                        product=temp_product,
+                        quantity=quantity,
+                        unit_price=manual_price
+                    )
+                    
+                    manual_index += 1
             
             # Calcular totales
             sale.calculate_totals()
@@ -190,6 +212,7 @@ def sale_create(request):
             
         except Exception as e:
             messages.error(request, f'Error al crear venta: {str(e)}')
+            return redirect('sales:sale_create')
     
     # GET request
     products = Product.objects.filter(company=company, is_active=True, stock__gt=0)

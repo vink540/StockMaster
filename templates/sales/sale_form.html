@@ -27,7 +27,9 @@
                     <option value="CASH">Efectivo</option>
                     <option value="CARD">Tarjeta</option>
                     <option value="TRANSFER">Transferencia</option>
+                    {% if system_config.enable_credits %}
                     <option value="CREDIT">Fiado</option>
+                    {% endif %}
                 </select>
             </div>
             
@@ -53,20 +55,15 @@
             </div>
         </div>
         
-        <!-- Productos -->
+        <!-- Productos del catálogo -->
         <div style="margin-bottom: 30px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="color: #555;">
-                    <i class="fas fa-boxes"></i> Productos
+                    <i class="fas fa-boxes"></i> Productos del Catálogo
                 </h3>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn btn-primary" onclick="addProductRow()">
-                        <i class="fas fa-plus"></i> Agregar Producto
-                    </button>
-                    <button type="button" class="btn btn-success" onclick="addManualProduct()">
-                        <i class="fas fa-keyboard"></i> Producto Manual
-                    </button>
-                </div>
+                <button type="button" class="btn btn-primary" onclick="addProductRow()">
+                    <i class="fas fa-plus"></i> Agregar Producto
+                </button>
             </div>
             
             <div id="productsContainer">
@@ -76,6 +73,25 @@
             <div style="text-align: center; padding: 30px; color: #999;" id="emptyMessage">
                 <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 10px; display: block;"></i>
                 <p>Haz clic en "Agregar Producto" para empezar</p>
+            </div>
+        </div>
+        
+        <!-- ✅ SECCIÓN DE PRODUCTOS MANUALES MEJORADA CON PESO -->
+        <div class="card" style="margin-bottom: 30px; border: 2px dashed #667eea;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h3 style="margin: 0; color: white;">
+                    <i class="fas fa-edit"></i> Productos Manuales (sin código)
+                </h3>
+                <small style="opacity: 0.9;">Para productos que no están en el inventario</small>
+            </div>
+            <div style="padding: 20px;">
+                <div id="manualProductsContainer">
+                    <!-- Los productos manuales se agregarán aquí -->
+                </div>
+                
+                <button type="button" class="btn btn-secondary" onclick="addManualProduct()">
+                    <i class="fas fa-plus"></i> Agregar Producto Manual
+                </button>
             </div>
         </div>
         
@@ -91,7 +107,8 @@
                            id="discount" 
                            class="form-control" 
                            value="0" 
-                           min="0">
+                           min="0"
+                           oninput="calculateTotal()">
                 </div>
                 
                 <div>
@@ -130,7 +147,7 @@
     </form>
 </div>
 
-<!-- Template para fila de producto -->
+<!-- Template para fila de producto del catálogo -->
 <template id="productRowTemplate">
     <div class="product-row" style="background: white; border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: center;">
@@ -174,53 +191,9 @@
     </div>
 </template>
 
-<!-- Template para producto manual -->
-<template id="manualProductTemplate">
-    <div class="product-row manual-product" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: center;">
-            <div class="form-group" style="margin-bottom: 0;">
-                <input type="text" 
-                       class="form-control manual-product-name" 
-                       name="manual_product_name[]" 
-                       placeholder="Ej: Tomate x kg"
-                       required>
-                <input type="hidden" name="product_id[]" value="">
-            </div>
-            
-            <div class="form-group" style="margin-bottom: 0;">
-                <input type="number" 
-                       class="form-control manual-quantity" 
-                       name="quantity[]" 
-                       placeholder="Cantidad/Peso"
-                       value="1" 
-                       min="1"
-                       required>
-            </div>
-            
-            <div class="form-group" style="margin-bottom: 0;">
-                <input type="number" 
-                       class="form-control manual-price" 
-                       name="manual_price[]" 
-                       placeholder="Precio unitario"
-                       value="0" 
-                       min="0"
-                       required>
-            </div>
-            
-            <div style="text-align: center;">
-                <small style="color: #777;">Subtotal</small>
-                <div style="font-weight: 600; color: #667eea; font-size: 1.1rem;" class="row-subtotal">$0</div>
-            </div>
-            
-            <button type="button" class="btn btn-danger" onclick="removeProductRow(this)" style="padding: 10px 15px;">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    </div>
-</template>
-
 <script>
     let productCount = 0;
+    let manualProductIndex = 0;
     
     // Mostrar/ocultar campo de cliente según método de pago
     document.getElementById('payment_method').addEventListener('change', function() {
@@ -236,7 +209,127 @@
         }
     });
     
-    // Agregar fila de producto
+    // ✅ AGREGAR PRODUCTO MANUAL CON SOPORTE PARA PESO
+    function addManualProduct() {
+        const container = document.getElementById('manualProductsContainer');
+        const productDiv = document.createElement('div');
+        productDiv.className = 'manual-product-item';
+        productDiv.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; position: relative; animation: slideIn 0.3s ease-out;';
+        
+        productDiv.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove(); calculateTotal();" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Hidden input para mantener estructura -->
+            <input type="hidden" name="product_id[]" value="">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <!-- Nombre del producto -->
+                <div>
+                    <label style="font-weight: 600; margin-bottom: 5px; display: block;">
+                        <i class="fas fa-tag"></i> Nombre del Producto
+                    </label>
+                    <input type="text" 
+                           name="manual_product_name[]" 
+                           placeholder="Ej: Papas, Tomate, Carne"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"
+                           required>
+                </div>
+                
+                <!-- Precio -->
+                <div>
+                    <label style="font-weight: 600; margin-bottom: 5px; display: block;">
+                        <i class="fas fa-dollar-sign"></i> Precio
+                    </label>
+                    <input type="number" 
+                           name="manual_price[]" 
+                           placeholder="0"
+                           step="0.01"
+                           min="0"
+                           class="manual-price-input"
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"
+                           oninput="calculateTotal()"
+                           required>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <label style="font-weight: 600; margin-bottom: 10px; display: block;">
+                    <i class="fas fa-balance-scale"></i> Tipo de Venta
+                </label>
+                <div style="display: flex; gap: 10px;">
+                    <label style="flex: 1; background: white; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <input type="radio" 
+                               name="manual_weight_type_${manualProductIndex}" 
+                               value="unit" 
+                               checked
+                               onchange="toggleWeightField(this, ${manualProductIndex})"
+                               style="margin-right: 5px;">
+                        📦 Por Unidad
+                    </label>
+                    <label style="flex: 1; background: white; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.3s;">
+                        <input type="radio" 
+                               name="manual_weight_type_${manualProductIndex}" 
+                               value="weight"
+                               onchange="toggleWeightField(this, ${manualProductIndex})"
+                               style="margin-right: 5px;">
+                        ⚖️ Por Peso
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Campo de peso (inicialmente oculto) -->
+            <div id="weightField_${manualProductIndex}" style="display: none; margin-top: 15px;">
+                <label style="font-weight: 600; margin-bottom: 5px; display: block;">
+                    <i class="fas fa-weight"></i> Peso
+                </label>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                    <input type="number" 
+                           name="manual_weight[]" 
+                           id="weightInput_${manualProductIndex}"
+                           placeholder="Cantidad"
+                           step="0.001"
+                           min="0"
+                           class="manual-weight-input"
+                           oninput="calculateTotal()"
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    
+                    <select name="manual_weight_unit[]" 
+                            id="weightUnit_${manualProductIndex}"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="g">Gramos (g)</option>
+                        <option value="kg">Kilogramos (kg)</option>
+                    </select>
+                </div>
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    💡 El precio es por la unidad seleccionada (ej: $500 por kilo)
+                </small>
+            </div>
+        `;
+        
+        container.appendChild(productDiv);
+        manualProductIndex++;
+        document.getElementById('emptyMessage').style.display = 'none';
+    }
+    
+    function toggleWeightField(radio, index) {
+        const weightField = document.getElementById(`weightField_${index}`);
+        const weightInput = document.getElementById(`weightInput_${index}`);
+        
+        if (radio.value === 'weight') {
+            weightField.style.display = 'block';
+            weightInput.required = true;
+        } else {
+            weightField.style.display = 'none';
+            weightInput.required = false;
+            weightInput.value = '';
+        }
+        
+        calculateTotal();
+    }
+    
+    // Agregar fila de producto del catálogo
     function addProductRow() {
         const template = document.getElementById('productRowTemplate');
         const clone = template.content.cloneNode(true);
@@ -258,55 +351,33 @@
         productCount++;
     }
     
-    // Agregar producto manual
-    function addManualProduct() {
-        const template = document.getElementById('manualProductTemplate');
-        const clone = template.content.cloneNode(true);
-        const container = document.getElementById('productsContainer');
-        
-        container.appendChild(clone);
-        document.getElementById('emptyMessage').style.display = 'none';
-        
-        // Agregar eventos a los nuevos elementos
-        const rows = container.querySelectorAll('.product-row');
-        const lastRow = rows[rows.length - 1];
-        
-        const quantityInput = lastRow.querySelector('.manual-quantity');
-        const priceInput = lastRow.querySelector('.manual-price');
-        
-        if (quantityInput) quantityInput.addEventListener('input', updateManualRowSubtotal);
-        if (priceInput) priceInput.addEventListener('input', updateManualRowSubtotal);
-        
-        productCount++;
-    }
-    
     // Eliminar fila de producto
     function removeProductRow(btn) {
         const row = btn.closest('.product-row');
         row.remove();
         
         const container = document.getElementById('productsContainer');
-        if (container.children.length === 0) {
+        const manualContainer = document.getElementById('manualProductsContainer');
+        
+        if (container.children.length === 0 && manualContainer.children.length === 0) {
             document.getElementById('emptyMessage').style.display = 'block';
         }
         
         calculateTotal();
     }
     
-    // Actualizar subtotal de fila
+    // Actualizar subtotal de fila del catálogo
     function updateRowSubtotal(event) {
         const row = event.target.closest('.product-row');
-        if (row.classList.contains('manual-product')) return;
-        
         const select = row.querySelector('.product-select');
         const quantityInput = row.querySelector('.quantity-input');
         const unitPriceDiv = row.querySelector('.unit-price');
         const subtotalDiv = row.querySelector('.row-subtotal');
         
         const selectedOption = select.options[select.selectedIndex];
-        const price = parseInt(selectedOption.dataset.price) || 0;
-        const stock = parseInt(selectedOption.dataset.stock) || 0;
-        const quantity = parseInt(quantityInput.value) || 0;
+        const price = parseFloat(selectedOption.dataset.price) || 0;
+        const stock = parseFloat(selectedOption.dataset.stock) || 0;
+        const quantity = parseFloat(quantityInput.value) || 0;
         
         // Validar stock
         if (quantity > stock) {
@@ -317,64 +388,59 @@
         
         const subtotal = price * quantity;
         
-        unitPriceDiv.textContent = `$${price}`;
-        subtotalDiv.textContent = `$${subtotal}`;
+        unitPriceDiv.textContent = `$${price.toFixed(0)}`;
+        subtotalDiv.textContent = `$${subtotal.toFixed(0)}`;
         
         calculateTotal();
     }
     
-    // Actualizar subtotal de producto manual
-    function updateManualRowSubtotal(event) {
-        const row = event.target.closest('.product-row');
-        const quantityInput = row.querySelector('.manual-quantity');
-        const priceInput = row.querySelector('.manual-price');
-        const subtotalDiv = row.querySelector('.row-subtotal');
-        
-        const quantity = parseInt(quantityInput.value) || 0;
-        const price = parseInt(priceInput.value) || 0;
-        const subtotal = quantity * price;
-        
-        subtotalDiv.textContent = `$${subtotal}`;
-        
-        calculateTotal();
-    }
-    
-    // Calcular total
+    // ✅ CALCULAR TOTAL INCLUYENDO PRODUCTOS POR PESO
     function calculateTotal() {
-        const rows = document.querySelectorAll('.product-row');
         let subtotal = 0;
         
-        rows.forEach(row => {
-            if (row.classList.contains('manual-product')) {
-                const quantity = parseInt(row.querySelector('.manual-quantity').value) || 0;
-                const price = parseInt(row.querySelector('.manual-price').value) || 0;
-                subtotal += quantity * price;
+        // Productos del catálogo
+        const catalogRows = document.querySelectorAll('#productsContainer .product-row');
+        catalogRows.forEach(row => {
+            const select = row.querySelector('.product-select');
+            const quantityInput = row.querySelector('.quantity-input');
+            const selectedOption = select.options[select.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const quantity = parseFloat(quantityInput.value) || 0;
+            
+            subtotal += price * quantity;
+        });
+        
+        // Productos manuales
+        const manualItems = document.querySelectorAll('.manual-product-item');
+        manualItems.forEach(item => {
+            const priceInput = item.querySelector('.manual-price-input');
+            const price = parseFloat(priceInput.value) || 0;
+            
+            // Verificar si es por peso
+            const weightInput = item.querySelector('.manual-weight-input');
+            const isWeightBased = weightInput && weightInput.offsetParent !== null; // visible
+            
+            if (isWeightBased && weightInput.value) {
+                const weight = parseFloat(weightInput.value) || 0;
+                subtotal += price * weight;
             } else {
-                const select = row.querySelector('.product-select');
-                const quantityInput = row.querySelector('.quantity-input');
-                const selectedOption = select.options[select.selectedIndex];
-                const price = parseInt(selectedOption.dataset.price) || 0;
-                const quantity = parseInt(quantityInput.value) || 0;
-                
-                subtotal += price * quantity;
+                subtotal += price; // Por unidad
             }
         });
         
-        const discount = parseInt(document.getElementById('discount').value) || 0;
-        const total = subtotal - discount;
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const total = Math.max(0, subtotal - discount);
         
-        document.getElementById('subtotal').textContent = subtotal;
-        document.getElementById('total').textContent = total;
+        document.getElementById('subtotal').textContent = subtotal.toFixed(0);
+        document.getElementById('total').textContent = total.toFixed(0);
     }
-    
-    // Calcular al cambiar descuento
-    document.getElementById('discount').addEventListener('input', calculateTotal);
     
     // Validar antes de enviar
     document.getElementById('saleForm').addEventListener('submit', function(e) {
-        const rows = document.querySelectorAll('.product-row');
+        const catalogRows = document.querySelectorAll('#productsContainer .product-row');
+        const manualItems = document.querySelectorAll('.manual-product-item');
         
-        if (rows.length === 0) {
+        if (catalogRows.length === 0 && manualItems.length === 0) {
             e.preventDefault();
             alert('Debes agregar al menos un producto.');
             return;
@@ -389,25 +455,43 @@
                 alert('Debes seleccionar un cliente para ventas fiadas.');
                 return;
             }
-            
-            // Validar límite de crédito
-            const selectedOption = customer.options[customer.selectedIndex];
-            const creditLimit = parseInt(selectedOption.dataset.creditLimit);
-            const totalDebt = parseInt(selectedOption.dataset.totalDebt);
-            const total = parseInt(document.getElementById('total').textContent);
-            
-            if (totalDebt + total > creditLimit) {
-                e.preventDefault();
-                alert('El cliente ha excedido su límite de crédito.');
-                return;
-            }
         }
         
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
     });
     
+    // Estilo para radio buttons seleccionados
+    document.addEventListener('change', function(e) {
+        if (e.target.type === 'radio' && e.target.name.startsWith('manual_weight_type_')) {
+            const labels = e.target.closest('div').querySelectorAll('label');
+            labels.forEach(label => {
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio.checked) {
+                    label.style.borderColor = '#667eea';
+                    label.style.background = '#f0f4ff';
+                } else {
+                    label.style.borderColor = '#ddd';
+                    label.style.background = 'white';
+                }
+            });
+        }
+    });
+    
     // Agregar primera fila al cargar
     addProductRow();
 </script>
+
+<style>
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 {% endblock %}
