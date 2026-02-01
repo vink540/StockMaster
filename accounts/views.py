@@ -23,12 +23,13 @@ from .models import SystemConfig, Company  # ✅ IMPORTAR Company
 
 # ========== AUTHENTICATION ==========
 
-# accounts/views.py
-# REEMPLAZAR la función register() con esta versión
+import logging
+
+logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def register(request):
-    """Vista para registro de nuevos usuarios - VERSIÓN SIMPLE"""
+    """Vista para registro de nuevos usuarios"""
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
@@ -57,12 +58,14 @@ def register(request):
                 username=username,
                 password=password
             )
+            logger.info(f"Usuario creado: {username}")
             
             # Crear empresa automáticamente
-            Company.objects.create(
+            company = Company.objects.create(
                 owner=user,
                 name=f"Tienda de {username}"
             )
+            logger.info(f"Empresa creada para {username}: {company.name}")
             
             # Iniciar sesión automáticamente
             login(request, user)
@@ -70,9 +73,14 @@ def register(request):
             return redirect('inventory:home')
             
         except Exception as e:
+            logger.error(f"Error al crear usuario {username}: {str(e)}", exc_info=True)
             messages.error(request, f'❌ Error al crear usuario: {str(e)}')
-            if user:
-                user.delete()
+            # Intentar limpiar si hubo error
+            try:
+                if 'user' in locals():
+                    user.delete()
+            except:
+                pass
             return render(request, 'accounts/register.html')
     
     return render(request, 'accounts/register.html')

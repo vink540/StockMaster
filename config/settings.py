@@ -145,7 +145,7 @@ REST_FRAMEWORK = {
 }
 
 # Google Gemini API
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDGHSYXXPu_Grh34ZqThAVN9sUmZI8gEzM')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBkt8CDNfHpzExvpxaYI9k_gT7Mdz-S9To')
 
 # Security settings para producción
 if not DEBUG:
@@ -158,3 +158,39 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    
+    LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+
+# Mostrar errores aunque DEBUG=False
+ADMINS = [('Admin', 'vinksans2@gmail.com')]
