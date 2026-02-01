@@ -23,40 +23,59 @@ from .models import SystemConfig, Company  # ✅ IMPORTAR Company
 
 # ========== AUTHENTICATION ==========
 
+# accounts/views.py
+# REEMPLAZAR la función register() con esta versión
+
 @transaction.atomic
 def register(request):
-    """Vista para registro de nuevos usuarios"""
+    """Vista para registro de nuevos usuarios - VERSIÓN SIMPLE"""
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            # Guardar el usuario
-            user = form.save()
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        password2 = request.POST.get('password2', '')
+        
+        # Validaciones
+        if not username or not password or not password2:
+            messages.error(request, '❌ Todos los campos son obligatorios')
+            return render(request, 'accounts/register.html')
+        
+        if password != password2:
+            messages.error(request, '❌ Las contraseñas no coinciden')
+            return render(request, 'accounts/register.html')
+        
+        if len(password) < 8:
+            messages.error(request, '❌ La contraseña debe tener al menos 8 caracteres')
+            return render(request, 'accounts/register.html')
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, '❌ El nombre de usuario ya existe')
+            return render(request, 'accounts/register.html')
+        
+        try:
+            # Crear usuario
+            user = User.objects.create_user(
+                username=username,
+                password=password
+            )
             
-            # ✅ Crear empresa automáticamente para el nuevo usuario
-            try:
-                Company.objects.create(
-                    owner=user,
-                    name=f"Tienda de {user.username}"
-                )
-                
-                # Iniciar sesión automáticamente
-                login(request, user)
-                messages.success(request, f'✅ ¡Bienvenido {user.username}! Tu tienda está lista.')
-                return redirect('inventory:home')
-            except Exception as e:
-                # Si falla la creación de la empresa, eliminar el usuario
+            # Crear empresa automáticamente
+            Company.objects.create(
+                owner=user,
+                name=f"Tienda de {username}"
+            )
+            
+            # Iniciar sesión automáticamente
+            login(request, user)
+            messages.success(request, f'✅ ¡Bienvenido {username}! Tu tienda está lista.')
+            return redirect('inventory:home')
+            
+        except Exception as e:
+            messages.error(request, f'❌ Error al crear usuario: {str(e)}')
+            if user:
                 user.delete()
-                messages.error(request, f'❌ Error al crear empresa: {str(e)}')
-                return redirect('accounts:register')
-        else:
-            # Mostrar errores del formulario
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-    else:
-        form = UserCreationForm()
+            return render(request, 'accounts/register.html')
     
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html')
 
 def user_login(request):
     """Vista de login (si tienes una personalizada)"""
