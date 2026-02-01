@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Caja - StockMaster{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="background: {% if cash_register.difference == 0 %}#28a745{% elif cash_register.difference > 0 %}#ffc107{% else %}#dc3545{% endif %}; color: white;">
+        <h1 class="card-title" style="color: white;">
+            <i class="fas fa-cash-register"></i> Detalle de Caja
+        </h1>
+        <p style="margin: 0; opacity: 0.9;">
+            Caja del {{ cash_register.opened_at|date:"d/m/Y" }} - 
+            <strong>{{ cash_register.get_status_display }}</strong>
+        </p>
+    </div>
+
+    <div class="card-body">
+        <!-- Información general -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+            <h2 style="margin-bottom: 20px;"><i class="fas fa-info-circle"></i> Información General</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div>
+                    <div style="color: #666; font-size: 0.9rem;">Usuario Responsable</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-top: 5px;">
+                        <i class="fas fa-user"></i> {{ cash_register.user.username }}
+                    </div>
+                </div>
+                <div>
+                    <div style="color: #666; font-size: 0.9rem;">Fecha de Apertura</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-top: 5px;">
+                        {{ cash_register.opened_at|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+                {% if cash_register.closed_at %}
+                <div>
+                    <div style="color: #666; font-size: 0.9rem;">Fecha de Cierre</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-top: 5px;">
+                        {{ cash_register.closed_at|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+                <div>
+                    <div style="color: #666; font-size: 0.9rem;">Tiempo Abierto</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-top: 5px;">
+                        {% widthratio cash_register.closed_at|timesince:cash_register.opened_at 1 1 %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Resumen de efectivo -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <!-- Monto inicial -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="opacity: 0.9; font-size: 0.9rem;">Monto Inicial</div>
+                <div style="font-size: 2rem; font-weight: bold; margin-top: 10px;">
+                    ${{ cash_register.opening_amount|floatformat:2 }}
+                </div>
+            </div>
+
+            <!-- Efectivo esperado -->
+            <div style="background: #28a745; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="opacity: 0.9; font-size: 0.9rem;">Efectivo Esperado</div>
+                <div style="font-size: 2rem; font-weight: bold; margin-top: 10px;">
+                    ${{ cash_register.expected_cash|floatformat:2 }}
+                </div>
+            </div>
+
+            {% if cash_register.status == 'CLOSED' %}
+            <!-- Efectivo real -->
+            <div style="background: #17a2b8; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="opacity: 0.9; font-size: 0.9rem;">Efectivo Contado</div>
+                <div style="font-size: 2rem; font-weight: bold; margin-top: 10px;">
+                    ${{ cash_register.closing_amount|floatformat:2 }}
+                </div>
+            </div>
+
+            <!-- Diferencia -->
+            <div style="background: {% if cash_register.difference == 0 %}#28a745{% elif cash_register.difference > 0 %}#ffc107{% else %}#dc3545{% endif %}; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="opacity: 0.9; font-size: 0.9rem;">Diferencia</div>
+                <div style="font-size: 2rem; font-weight: bold; margin-top: 10px;">
+                    {% if cash_register.difference > 0 %}+{% endif %}${{ cash_register.difference|floatformat:2 }}
+                </div>
+                <div style="opacity: 0.9; font-size: 0.85rem; margin-top: 5px;">
+                    {% if cash_register.difference == 0 %}
+                        ✓ Todo cuadra
+                    {% elif cash_register.difference > 0 %}
+                        Sobrante
+                    {% else %}
+                        Faltante
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Ventas por método de pago -->
+        <h2 style="margin-bottom: 20px;"><i class="fas fa-chart-bar"></i> Ventas por Método de Pago</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <div style="background: white; border: 2px solid #28a745; padding: 15px; border-radius: 10px;">
+                <div style="color: #28a745; font-weight: bold; margin-bottom: 5px;">
+                    <i class="fas fa-money-bill-wave"></i> Efectivo
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">
+                    ${{ cash_register.total_cash_sales|floatformat:2 }}
+                </div>
+            </div>
+
+            <div style="background: white; border: 2px solid #007bff; padding: 15px; border-radius: 10px;">
+                <div style="color: #007bff; font-weight: bold; margin-bottom: 5px;">
+                    <i class="fas fa-credit-card"></i> Tarjeta
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #007bff;">
+                    ${{ cash_register.total_card_sales|floatformat:2 }}
+                </div>
+            </div>
+
+            <div style="background: white; border: 2px solid #17a2b8; padding: 15px; border-radius: 10px;">
+                <div style="color: #17a2b8; font-weight: bold; margin-bottom: 5px;">
+                    <i class="fas fa-exchange-alt"></i> Transferencia
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #17a2b8;">
+                    ${{ cash_register.total_transfer_sales|floatformat:2 }}
+                </div>
+            </div>
+
+            <div style="background: white; border: 2px solid #ffc107; padding: 15px; border-radius: 10px;">
+                <div style="color: #f0ad4e; font-weight: bold; margin-bottom: 5px;">
+                    <i class="fas fa-handshake"></i> Fiado
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #f0ad4e;">
+                    ${{ cash_register.total_credit_sales|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Total de ventas -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+            <div style="opacity: 0.9; font-size: 1.1rem;">Total de Ventas</div>
+            <div style="font-size: 3rem; font-weight: bold; margin: 10px 0;">
+                ${{ cash_register.total_sales|floatformat:2 }}
+            </div>
+        </div>
+
+        <!-- Notas -->
+        {% if cash_register.opening_notes %}
+        <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; border-left: 4px solid #007bff; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #007bff;">
+                <i class="fas fa-sticky-note"></i> Notas de Apertura
+            </h3>
+            <p style="margin: 0;">{{ cash_register.opening_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if cash_register.closing_notes %}
+        <div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; color: #856404;">
+                <i class="fas fa-sticky-note"></i> Notas de Cierre
+            </h3>
+            <p style="margin: 0;">{{ cash_register.closing_notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Ventas del período -->
+        {% if sales %}
+        <h2 style="margin: 30px 0 20px;"><i class="fas fa-receipt"></i> Ventas del Período ({{ sales.count }})</h2>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha/Hora</th>
+                        <th>Cliente</th>
+                        <th>Método de Pago</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td><a href="{% url 'sales:sale_detail' sale.pk %}">#{{ sale.id }}</a></td>
+                        <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ sale.customer.name|default:"Cliente general" }}</td>
+                        <td>
+                            <span class="badge badge-{% if sale.payment_method == 'CASH' %}success{% elif sale.payment_method == 'CARD' %}primary{% elif sale.payment_method == 'TRANSFER' %}info{% else %}warning{% endif %}">
+                                {{ sale.get_payment_method_display }}
+                            </span>
+                        </td>
+                        <td style="font-weight: bold;">${{ sale.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Botones de acción -->
+        <div style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'sales:cash_register_list' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Ver Historial de Cajas
+            </a>
+            
+            {% if cash_register.status == 'CLOSED' %}
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .navbar, .btn, .card-header { display: none !important; }
+    body { background: white !important; }
+}
+</style>
+{% endblock %}
