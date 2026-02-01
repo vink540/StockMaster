@@ -4,20 +4,24 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Sum
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.core.management import call_command
-from django.conf import settings as django_settings  # ✅ Usar alias
+from django.conf import settings as django_settings
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
 from pathlib import Path
 from datetime import datetime
 import os
 import glob
+import json
+
 from inventory.models import Product
-from sales.models import Sale
-from .models import SystemConfig
-from django.contrib.auth.models import User
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import UserCreationForm
-from django.db import transaction
+from sales.models import Sale, Customer
+from .models import SystemConfig, Company  # ✅ IMPORTAR Company
+
+# ========== AUTHENTICATION ==========
 
 @transaction.atomic
 def register(request):
@@ -29,36 +33,82 @@ def register(request):
             user = form.save()
             
             # ✅ Crear empresa automáticamente para el nuevo usuario
-            Company.objects.create(
-                owner=user,
-                name=f"Tienda de {user.username}"
-            )
-            
-            # Iniciar sesión automáticamente
-            login(request, user)
-            messages.success(request, f'¡Bienvenido {user.username}! Tu tienda está lista.')
-            return redirect('inventory:home')
+            try:
+                Company.objects.create(
+                    owner=user,
+                    name=f"Tienda de {user.username}"
+                )
+                
+                # Iniciar sesión automáticamente
+                login(request, user)
+                messages.success(request, f'✅ ¡Bienvenido {user.username}! Tu tienda está lista.')
+                return redirect('inventory:home')
+            except Exception as e:
+                # Si falla la creación de la empresa, eliminar el usuario
+                user.delete()
+                messages.error(request, f'❌ Error al crear empresa: {str(e)}')
+                return redirect('accounts:register')
+        else:
+            # Mostrar errores del formulario
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = UserCreationForm()
     
     return render(request, 'accounts/register.html', {'form': form})
 
+def user_login(request):
+    """Vista de login (si tienes una personalizada)"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'¡Bienvenido {user.username}!')
+            
+            # Redirigir a la página que intentaba acceder o al home
+            next_url = request.GET.get('next', 'inventory:home')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    
+    return render(request, 'accounts/login.html')
+
 def user_logout(request):
     """Cerrar sesión"""
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente')
-    return redirect('accounts:login')  # ← Asegúrate que tenga esto
+    return redirect('accounts:login')
 
+# ========== PROFILE ==========
 
 @login_required
 def profile(request):
     """Perfil del usuario"""
     user = request.user
     
-    # Estadísticas del usuario
-    products_created = Product.objects.filter(created_by=user).count()
-    sales_created = Sale.objects.filter(created_by=user).count()
-    total_sales_value = Sale.objects.filter(created_by=user).aggregate(total=Sum('total'))['total'] or 0
+    # ✅ Filtrar por company si existe
+    if hasattr(request, 'company') and request.company:
+        products_created = Product.objects.filter(
+            company=request.company,
+            created_by=user
+        ).count()
+        sales_created = Sale.objects.filter(
+            company=request.company,
+            created_by=user
+        ).count()
+        total_sales_value = Sale.objects.filter(
+            company=request.company,
+            created_by=user
+        ).aggregate(total=Sum('total'))['total'] or 0
+    else:
+        products_created = 0
+        sales_created = 0
+        total_sales_value = 0
     
     context = {
         'user': user,
@@ -88,8 +138,7 @@ def profile_edit(request):
     context = {'user': user}
     return render(request, 'accounts/profile_edit.html', context)
 
-# accounts/views.py
-# REEMPLAZAR la función settings() con esta versión
+# ========== SETTINGS ==========
 
 @login_required
 def settings(request):
@@ -190,6 +239,12 @@ def user_create(request):
                 is_staff=is_staff
             )
             
+            # Crear empresa para el nuevo usuario
+            Company.objects.create(
+                owner=user,
+                name=f"Tienda de {username}"
+            )
+            
             messages.success(request, f'Usuario "{user.username}" creado exitosamente.')
             return redirect('accounts:user_list')
         except Exception as e:
@@ -257,12 +312,7 @@ def user_delete(request, pk):
 @staff_member_required
 def backup_list(request):
     """Lista de backups disponibles"""
-    from django.conf import settings
-    import os
-    import glob
-    from datetime import datetime
-    
-    backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+    backup_dir = os.path.join(django_settings.BASE_DIR, 'backups')
     
     # Crear directorio si no existe
     if not os.path.exists(backup_dir):
@@ -294,7 +344,7 @@ def backup_list(request):
     context = {
         'backups': backups,
         'total_backups': len(backups),
-        'backup_dir': backup_dir,  # Para debugging
+        'backup_dir': backup_dir,
     }
     return render(request, 'accounts/backup_list.html', context)
 
@@ -303,7 +353,6 @@ def create_backup(request):
     """Crear nuevo backup"""
     if request.method == 'POST':
         try:
-            # Llamar al comando de Django
             call_command('create_backup')
             messages.success(request, '✅ Backup creado exitosamente')
         except Exception as e:
@@ -322,7 +371,6 @@ def download_backup(request, filename):
     if not os.path.exists(file_path):
         raise Http404('Backup no encontrado')
     
-    # Verificar que el archivo esté en el directorio de backups (seguridad)
     if not file_path.startswith(backup_dir):
         raise Http404('Acceso no autorizado')
     
@@ -358,7 +406,6 @@ def clean_old_backups(request):
             reverse=True
         )
         
-        # Mantener solo los últimos 10
         deleted = 0
         for file in files[10:]:
             os.remove(file)
@@ -366,22 +413,8 @@ def clean_old_backups(request):
         
         messages.success(request, f'✅ {deleted} backup(s) antiguos eliminados')
         return redirect('accounts:backup_list')
-    
-# accounts/views.py o crear nuevo archivo chatbot/views.py
-# AGREGAR estas funciones
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-import google.generativeai as genai
-from django.conf import settings as django_settings
-import json
-from inventory.models import Product
-from sales.models import Sale, Customer
-
-# Configurar Gemini
-genai.configure(api_key=django_settings.GEMINI_API_KEY)
+# ========== CHATBOT ==========
 
 @login_required
 def chatbot_view(request):
@@ -396,16 +429,11 @@ def chatbot_api(request):
         return JsonResponse({'error': 'Método no permitido'}, status=405)
     
     try:
-        # Leer mensaje
         data = json.loads(request.body.decode('utf-8'))
         user_message = data.get('message', '').strip()
         
         if not user_message:
             return JsonResponse({'error': 'Mensaje vacío'}, status=400)
-        
-        # Configurar Gemini
-        from django.conf import settings as django_settings
-        import google.generativeai as genai
         
         api_key = getattr(django_settings, 'GEMINI_API_KEY', None)
         if not api_key:
@@ -414,12 +442,11 @@ def chatbot_api(request):
                 'status': 'success'
             })
         
+        import google.generativeai as genai
         genai.configure(api_key=api_key)
         
-        # Obtener contexto del sistema
-        context = get_system_context(request.user)
+        context = get_system_context(request.user, request.company if hasattr(request, 'company') else None)
         
-        # Crear prompt
         system_prompt = f"""Eres un asistente virtual amigable de StockMaster, un sistema de gestión de inventario y ventas.
 
 INFORMACIÓN DEL SISTEMA:
@@ -434,49 +461,48 @@ INSTRUCCIONES:
 
 Responde en español y de forma amigable."""
 
-        # Usar el modelo correcto (el más rápido y económico)
         model = genai.GenerativeModel('models/gemini-2.5-flash')
-        
         full_prompt = f"{system_prompt}\n\nUsuario: {user_message}\nAsistente:"
-        
         response = model.generate_content(full_prompt)
-        bot_response = response.text
         
         return JsonResponse({
-            'response': bot_response,
+            'response': response.text,
             'status': 'success'
         })
         
     except Exception as e:
         import traceback
-        error_trace = traceback.format_exc()
         print("ERROR EN CHATBOT:")
-        print(error_trace)
+        print(traceback.format_exc())
         
         return JsonResponse({
             'response': f'❌ Error: {str(e)}',
             'status': 'success'
         })
-        
-def get_system_context(user):
+
+def get_system_context(user, company=None):
     """Obtener contexto del sistema para el chatbot"""
     context = []
     
-    # Estadísticas generales
-    total_products = Product.objects.filter(is_active=True).count()
+    # ✅ Filtrar por company si existe
+    if company:
+        total_products = Product.objects.filter(company=company, is_active=True).count()
+        low_stock = Product.objects.filter(company=company, is_active=True, stock__lte=5).count()
+        recent_sales = Sale.objects.filter(company=company).count()
+        top_products = Product.objects.filter(company=company, is_active=True).values_list('name', flat=True)[:10]
+    else:
+        total_products = Product.objects.filter(is_active=True).count()
+        low_stock = Product.objects.filter(is_active=True, stock__lte=5).count()
+        recent_sales = Sale.objects.count()
+        top_products = Product.objects.filter(is_active=True).values_list('name', flat=True)[:10]
+    
     context.append(f"- Total de productos activos: {total_products}")
     
-    # Productos con stock bajo
-    low_stock = Product.objects.filter(is_active=True, stock__lte=5).count()
     if low_stock > 0:
         context.append(f"- ⚠️ Hay {low_stock} productos con stock bajo")
     
-    # Últimas ventas
-    recent_sales = Sale.objects.count()
     context.append(f"- Total de ventas registradas: {recent_sales}")
     
-    # Productos más comunes (para búsquedas)
-    top_products = Product.objects.filter(is_active=True).values_list('name', flat=True)[:10]
     if top_products:
         context.append(f"- Algunos productos disponibles: {', '.join(top_products)}")
     
@@ -490,10 +516,12 @@ def search_products_for_chat(request):
     if not query:
         return JsonResponse({'products': []})
     
-    products = Product.objects.filter(
-        is_active=True,
-        name__icontains=query
-    )[:5]
+    # ✅ Filtrar por company si existe
+    filters = {'is_active': True, 'name__icontains': query}
+    if hasattr(request, 'company') and request.company:
+        filters['company'] = request.company
+    
+    products = Product.objects.filter(**filters)[:5]
     
     products_data = [{
         'id': p.id,
