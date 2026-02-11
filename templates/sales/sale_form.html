@@ -402,13 +402,26 @@
             return;
         }
         
-        // Buscar el producto en las opciones
-        const allOptions = document.querySelectorAll('#productRowTemplate option[data-barcode]');
+        // Crear una lista de productos desde el template (para tener todos los productos disponibles)
+        const template = document.getElementById('productRowTemplate');
+        const tempContainer = document.createElement('div');
+        tempContainer.appendChild(template.content.cloneNode(true));
+        const allOptions = tempContainer.querySelectorAll('option[data-barcode]');
+        
         let productFound = null;
         
+        // Buscar el producto por código de barras
         allOptions.forEach(option => {
-            if (option.dataset.barcode === barcode) {
-                productFound = option;
+            const optionBarcode = option.dataset.barcode;
+            // Comparar códigos (trimmed y sin espacios)
+            if (optionBarcode && optionBarcode.trim() === barcode) {
+                productFound = {
+                    id: option.value,
+                    name: option.textContent.split('(')[0].trim(),
+                    price: option.dataset.price,
+                    stock: option.dataset.stock,
+                    barcode: optionBarcode
+                };
             }
         });
         
@@ -419,7 +432,7 @@
             
             existingRows.forEach(row => {
                 const select = row.querySelector('.product-select');
-                if (select.value === productFound.value) {
+                if (select.value === productFound.id) {
                     existingRow = row;
                 }
             });
@@ -428,14 +441,14 @@
                 // Incrementar cantidad si ya existe
                 const quantityInput = existingRow.querySelector('.quantity-input');
                 const currentQty = parseFloat(quantityInput.value) || 0;
-                const stock = parseFloat(productFound.dataset.stock) || 0;
+                const stock = parseFloat(productFound.stock) || 0;
                 
                 if (currentQty + 1 <= stock) {
                     quantityInput.value = currentQty + 1;
                     updateRowSubtotal({ target: quantityInput });
-                    showBarcodeStatus(`✅ ${productFound.textContent.split('(')[0].trim()} - Cantidad: ${currentQty + 1}`, 'success');
+                    showBarcodeStatus(`✅ ${productFound.name} - Cantidad: ${currentQty + 1}`, 'success');
                 } else {
-                    showBarcodeStatus(`⚠️ Stock insuficiente para ${productFound.textContent.split('(')[0].trim()}`, 'warning');
+                    showBarcodeStatus(`⚠️ Stock insuficiente para ${productFound.name}`, 'warning');
                 }
             } else {
                 // Agregar nuevo producto
@@ -444,17 +457,17 @@
                 const lastRow = rows[rows.length - 1];
                 const select = lastRow.querySelector('.product-select');
                 
-                select.value = productFound.value;
+                select.value = productFound.id;
                 updateRowSubtotal({ target: select });
                 
-                showBarcodeStatus(`✅ Agregado: ${productFound.textContent.split('(')[0].trim()}`, 'success');
+                showBarcodeStatus(`✅ Agregado: ${productFound.name}`, 'success');
             }
             
             // Reproducir sonido de éxito
             playBeep();
             
         } else {
-            showBarcodeStatus('❌ Producto no encontrado', 'error');
+            showBarcodeStatus(`❌ Producto con código "${barcode}" no encontrado`, 'error');
             playErrorBeep();
         }
         
