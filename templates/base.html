@@ -488,9 +488,6 @@
                 <li><a href="{% url 'inventory:product_list' %}" class="nav-link"><i class="fas fa-boxes"></i> Productos</a></li>
                 <li><a href="{% url 'sales:sale_list' %}" class="nav-link"><i class="fas fa-shopping-cart"></i> Ventas</a></li>
                 <li><a href="{% url 'sales:cash_register_current' %}" class="nav-link"><i class="fas fa-cash-register"></i> Caja</a></li>
-                {% if system_config.enable_customers %}
-                <li><a href="{% url 'sales:customer_list' %}" class="nav-link"><i class="fas fa-users"></i> Clientes</a></li>
-                {% endif %}
                 {% if system_config.enable_credits %}
                 <li><a href="{% url 'sales:credit_sales' %}" class="nav-link"><i class="fas fa-credit-card"></i> Fiados</a></li>
                 {% endif %}
